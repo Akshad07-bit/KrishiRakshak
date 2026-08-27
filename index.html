@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KrishiRakshak — Crop Disease Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --soil:#241c14;
+    --soil-soft:#3a2f22;
+    --leaf:#3f6b42;
+    --leaf-deep:#294a2d;
+    --turmeric:#d9a62e;
+    --rice:#faf6ec;
+    --rice-dim:#efe8d6;
+    --alert:#b5442e;
+    --ok:#4a7a42;
+    --warn:#c98a1f;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: linear-gradient(180deg,#1b150f 0%, #241c14 100%);
+    font-family:'Inter',sans-serif;
+    display:flex; justify-content:center; align-items:center;
+    min-height:100vh; padding:24px;
+    color: var(--rice);
+  }
+  .phone{
+    width:100%; max-width:400px; height:820px;
+    background: var(--rice);
+    border-radius:36px;
+    overflow:hidden;
+    position:relative;
+    box-shadow: 0 40px 80px -20px rgba(0,0,0,0.6), 0 0 0 10px #120d09;
+    display:flex; flex-direction:column;
+  }
+  /* HEADER */
+  .app-header{
+    background: var(--soil);
+    padding:22px 20px 16px;
+    display:flex; justify-content:space-between; align-items:flex-start;
+    position:relative;
+  }
+  .app-header::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:-1px; height:14px;
+    background: var(--soil);
+    border-radius: 0 0 50% 50%/0 0 100% 100%;
+  }
+  .brand{ display:flex; flex-direction:column; gap:2px; }
+  .brand .mark{
+    font-family:'Fraunces',serif; font-weight:700; font-size:22px; color:var(--rice);
+    letter-spacing:0.2px;
+  }
+  .brand .mark span{ color: var(--turmeric); }
+  .brand .sub{
+    font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px;
+    color: #a8987a; text-transform:uppercase;
+  }
+  .lang-toggle{
+    display:flex; background:rgba(255,255,255,0.08); border-radius:20px; padding:3px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px;
+  }
+  .lang-toggle button{
+    border:none; background:transparent; color:#c9bc9f; padding:6px 10px; border-radius:16px;
+    cursor:pointer; font-family:inherit; font-size:11px;
+  }
+  .lang-toggle button.active{ background: var(--turmeric); color:#241c14; font-weight:600; }
+
+  /* MAIN SCROLL AREA */
+  .screen{ flex:1; overflow-y:auto; padding-bottom:90px; }
+  .screen::-webkit-scrollbar{ display:none; }
+
+  /* VIEWFINDER */
+  .viewfinder-wrap{ padding:18px 20px 4px; }
+  .viewfinder{
+    position:relative; width:100%; aspect-ratio: 3/4;
+    background:#14100c; border-radius:20px; overflow:hidden;
+    border:1px solid #3a2f22;
+  }
+  .viewfinder video, .viewfinder img.capture-preview{
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+  .viewfinder .placeholder{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:10px; color:#6b5d45; text-align:center; padding:20px;
+  }
+  .viewfinder .placeholder .leaf-icon{ font-size:34px; }
+  .viewfinder .placeholder p{ font-size:12px; line-height:1.5; color:#8a7a5c; }
+  .corner{ position:absolute; width:26px; height:26px; border-color:var(--turmeric); }
+  .corner.tl{ top:12px; left:12px; border-top:3px solid; border-left:3px solid; border-radius:6px 0 0 0;}
+  .corner.tr{ top:12px; right:12px; border-top:3px solid; border-right:3px solid; border-radius:0 6px 0 0;}
+  .corner.bl{ bottom:12px; left:12px; border-bottom:3px solid; border-left:3px solid; border-radius:0 0 0 6px;}
+  .corner.br{ bottom:12px; right:12px; border-bottom:3px solid; border-right:3px solid; border-radius:0 0 6px 0;}
+  .scanline{
+    position:absolute; left:8%; right:8%; height:2px;
+    background: linear-gradient(90deg, transparent, var(--turmeric), transparent);
+    box-shadow: 0 0 12px 2px var(--turmeric);
+    animation: scan 1.8s ease-in-out infinite;
+    opacity:0;
+  }
+  .scanning .scanline{ opacity:1; }
+  @keyframes scan{
+    0%{ top:8%; } 50%{ top:88%; } 100%{ top:8%; }
+  }
+  .scan-status{
+    position:absolute; bottom:14px; left:14px; right:14px;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--turmeric);
+    background:rgba(20,16,12,0.75); padding:8px 10px; border-radius:8px;
+    display:none; letter-spacing:0.5px;
+  }
+  .scanning .scan-status{ display:block; }
+
+  .crop-row{
+    display:flex; gap:8px; padding:14px 20px 2px; overflow-x:auto;
+  }
+  .crop-chip{
+    flex:0 0 auto; padding:8px 14px; border-radius:20px; border:1px solid var(--rice-dim);
+    background:#fff; font-size:12.5px; font-weight:600; color:#5c5236; cursor:pointer;
+    white-space:nowrap;
+  }
+  .crop-chip.active{ background: var(--leaf); color:#fff; border-color:var(--leaf); }
+
+  .action-row{ display:flex; gap:10px; padding:16px 20px 6px; }
+  .btn{
+    flex:1; padding:14px; border-radius:14px; border:none; font-family:'Inter',sans-serif;
+    font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-primary{ background: var(--leaf); color:#fff; }
+  .btn-primary:disabled{ background:#a9b8a5; cursor:not-allowed; }
+  .btn-ghost{ background:#fff; color:var(--soil-soft); border:1px solid var(--rice-dim); flex:0 0 52px; }
+
+  /* DIAGNOSIS CARD */
+  .report{
+    margin:18px 20px 10px; background:#fff; border-radius:18px; overflow:hidden;
+    border:1px solid var(--rice-dim); box-shadow:0 10px 30px -18px rgba(0,0,0,0.4);
+    display:none;
+  }
+  .report.show{ display:block; animation: rise 0.4s ease; }
+  @keyframes rise{ from{ opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+  .report-head{
+    padding:16px 18px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+    border-bottom:1px dashed var(--rice-dim);
+  }
+  .report-head .ticket-label{
+    font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:1.5px; color:#a89a7a; text-transform:uppercase;
+  }
+  .report-head h2{ font-family:'Fraunces',serif; font-size:19px; color:var(--soil); margin-top:2px; }
+  .severity-pill{
+    font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; padding:5px 10px; border-radius:20px;
+    white-space:nowrap; margin-top:2px;
+  }
+  .sev-low{ background:#e7f1e5; color:var(--ok); }
+  .sev-medium{ background:#fbf0da; color:var(--warn); }
+  .sev-high{ background:#f8e2dd; color:var(--alert); }
+
+  .confidence-bar-wrap{ padding:14px 18px 4px; }
+  .confidence-label{ display:flex; justify-content:space-between; font-size:11px; color:#8a7a5c; margin-bottom:5px; font-family:'IBM Plex Mono',monospace;}
+  .confidence-track{ height:6px; background:var(--rice-dim); border-radius:4px; overflow:hidden; }
+  .confidence-fill{ height:100%; background:linear-gradient(90deg,var(--leaf),var(--turmeric)); border-radius:4px; }
+
+  .report-section{ padding:12px 18px; }
+  .report-section h4{ font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#a89a7a; margin-bottom:6px; }
+  .report-section p, .report-section li{ font-size:13px; line-height:1.55; color:#3a3225; }
+  .report-section ul{ padding-left:18px; }
+  .treatment-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .treatment-box{ background:var(--rice); border-radius:12px; padding:10px 12px; }
+  .treatment-box .t-title{ font-size:10.5px; font-weight:700; color:var(--leaf-deep); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.5px;}
+  .treatment-box p{ font-size:12px; }
+
+  .cta-row{ padding:6px 18px 18px; display:flex; gap:8px; }
+  .cta-row button{
+    flex:1; padding:11px; border-radius:12px; font-size:12.5px; font-weight:700; border:none; cursor:pointer;
+  }
+  .cta-outline{ background:#fff; border:1.5px solid var(--leaf); color:var(--leaf); }
+  .cta-fill{ background: var(--soil); color:#fff; }
+
+  /* HISTORY */
+  .history-list{ padding:6px 20px 20px; display:flex; flex-direction:column; gap:10px; }
+  .history-item{
+    background:#fff; border:1px solid var(--rice-dim); border-radius:14px; padding:12px 14px;
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+  }
+  .history-item .hi-left{ display:flex; flex-direction:column; gap:2px; }
+  .history-item .hi-crop{ font-size:10px; color:#a89a7a; text-transform:uppercase; letter-spacing:0.5px; font-family:'IBM Plex Mono',monospace; }
+  .history-item .hi-disease{ font-family:'Fraunces',serif; font-size:14.5px; color:var(--soil); }
+  .history-item .hi-date{ font-size:10.5px; color:#a89a7a; }
+  .empty-state{ padding:60px 30px; text-align:center; color:#a89a7a; }
+  .empty-state .ei{ font-size:32px; margin-bottom:10px; }
+  .empty-state p{ font-size:13px; line-height:1.5; }
+
+  /* SECTION TITLES */
+  .section-title{ padding:20px 20px 4px; font-family:'Fraunces',serif; font-size:17px; color:var(--soil); }
+  .section-hint{ padding:0 20px; font-size:12px; color:#8a7a5c; margin-bottom:4px; }
+
+
+
+  /* ANALYSE BUTTON */
+  .analyse-row{ padding:0 20px 6px; }
+  .btn-analyse{
+    width:100%; padding:14px; border-radius:14px; border:none;
+    background: linear-gradient(135deg, var(--soil), var(--leaf-deep));
+    color:#fff; font-family:'Inter',sans-serif; font-weight:700; font-size:14px;
+    cursor:pointer; align-items:center; justify-content:center; gap:8px;
+    display:none;
+  }
+  .btn-analyse.show{ display:flex; }
+  .btn-analyse:disabled{ background:#a9b8a5; cursor:not-allowed; }
+
+  /* SPINNER */
+  .spinner{
+    width:16px; height:16px; border:2px solid rgba(255,255,255,0.3);
+    border-top-color:#fff; border-radius:50%;
+    animation: spin 0.7s linear infinite; display:none;
+  }
+  .btn-analyse.loading .spinner{ display:block; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* ERROR BOX */
+  .error-box{
+    margin:10px 20px; background:#f8e2dd; border-radius:12px; padding:12px 14px;
+    font-size:12.5px; color:var(--alert); line-height:1.5; display:none;
+  }
+  .error-box.show{ display:block; }
+
+  /* NAV */
+  .bottom-nav{
+    position:absolute; bottom:0; left:0; right:0; height:78px;
+    background:#fff; border-top:1px solid var(--rice-dim);
+    display:flex; align-items:center; justify-content:space-around;
+    padding-bottom:10px;
+  }
+  .nav-btn{
+    display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none; cursor:pointer;
+    color:#b3a687; font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.3px;
+  }
+  .nav-btn .ni{ font-size:19px; }
+  .nav-btn.active{ color: var(--leaf); }
+
+  .hidden{ display:none !important; }
+  canvas{ display:none; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="app-header">
+    <div class="brand">
+      <div class="mark">Krishi<span>Rakshak</span></div>
+      <div class="sub" id="tagline">AI Crop Health Scanner</div>
+    </div>
+    <div class="lang-toggle" id="langToggle">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="hi">हिं</button>
+    </div>
+  </div>
+
+
+
+  <div class="screen">
+
+    <!-- SCAN VIEW -->
+    <div id="view-scan">
+      <div class="crop-row" id="cropRow"></div>
+
+      <div class="viewfinder-wrap">
+        <div class="viewfinder" id="viewfinder">
+          <div class="placeholder" id="vfPlaceholder">
+            <div class="leaf-icon">🌿</div>
+            <p id="vfHint">Point the camera at an affected leaf, or upload a photo, to begin diagnosis.</p>
+          </div>
+          <video id="video" autoplay playsinline class="hidden"></video>
+          <img id="capturedImg" class="capture-preview hidden">
+          <div class="corner tl"></div><div class="corner tr"></div>
+          <div class="corner bl"></div><div class="corner br"></div>
+          <div class="scanline"></div>
+          <div class="scan-status" id="scanStatus">ANALYZING LEAF TEXTURE…</div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-ghost" id="uploadBtn" title="Upload photo">📁</button>
+        <button class="btn btn-primary" id="captureBtn">📷 Start Camera</button>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" capture="environment" class="hidden">
+
+      <!-- ANALYSE BUTTON — shows after image is ready -->
+      <div class="analyse-row">
+        <button class="btn-analyse" id="analyseBtn">
+          <span class="spinner"></span>
+          <span id="analyseBtnText">🔬 Analyse with AI</span>
+        </button>
+      </div>
+
+      <div class="error-box" id="errorBox"></div>
+      <div class="report" id="reportCard"></div>
+    </div>
+
+    <!-- HISTORY VIEW -->
+    <div id="view-history" class="hidden">
+      <div class="section-title">Field Health Log</div>
+      <div class="section-hint" id="historyHint">Every scan you run is saved here, on this device.</div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+
+    <!-- ALERTS VIEW -->
+    <div id="view-alerts" class="hidden">
+      <div class="section-title">District Outbreak Watch</div>
+      <div class="section-hint">Simulated regional risk, based on recent humidity and nearby reports.</div>
+      <div class="history-list" id="alertsList"></div>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn active" data-view="scan"><span class="ni">🔎</span>Scan</button>
+    <button class="nav-btn" data-view="history"><span class="ni">📋</span>History</button>
+    <button class="nav-btn" data-view="alerts"><span class="ni">⚠️</span>Alerts</button>
+  </div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+/* ---------------- DISEASE DATABASE ---------------- */
+const CROPS = ["Tomato","Wheat","Cotton","Rice","Potato"];
+
+const DB = {
+  Tomato: [
+    { key:"early_blight", name:{en:"Early Blight",hi:"अगेती झुलसा रोग"}, severity:"medium", tone:"brown",
+      symptoms:{en:"Concentric dark brown rings on lower leaves, yellowing around spots.",hi:"निचली पत्तियों पर गहरे भूरे संकेंद्रित छल्ले, धब्बों के चारों ओर पीलापन।"},
+      organic:{en:"Neem oil spray every 5-7 days; remove infected lower leaves.",hi:"हर 5-7 दिन में नीम तेल का छिड़काव; संक्रमित निचली पत्तियां हटाएं।"},
+      chemical:{en:"Mancozeb 75% WP @ 2g/L water, 10-day interval.",hi:"मैंकोज़ेब 75% WP @ 2 ग्राम/लीटर पानी, 10 दिन के अंतराल पर।"} },
+    { key:"late_blight", name:{en:"Late Blight",hi:"पछेती झुलसा रोग"}, severity:"high", tone:"brown",
+      symptoms:{en:"Water-soaked patches turning brown-black, white mold under leaves in humid weather.",hi:"पानी से भीगे धब्बे भूरे-काले होते हुए, नम मौसम में पत्तियों के नीचे सफेद फफूंद।"},
+      organic:{en:"Copper oxychloride spray; improve field drainage and spacing.",hi:"कॉपर ऑक्सीक्लोराइड का छिड़काव; खेत की जल निकासी और दूरी सुधारें।"},
+      chemical:{en:"Metalaxyl + Mancozeb combination fungicide, as per label dose.",hi:"मेटालैक्सिल + मैंकोज़ेब मिश्रित फफूंदनाशक, लेबल अनुसार मात्रा।"} },
+    { key:"leaf_healthy", name:{en:"Healthy Leaf",hi:"स्वस्थ पत्ती"}, severity:"low", tone:"green",
+      symptoms:{en:"No visible lesions, uniform green colour, normal leaf shape.",hi:"कोई घाव नहीं, समान हरा रंग, सामान्य पत्ती आकार।"},
+      organic:{en:"Continue balanced compost feeding and regular watering.",hi:"संतुलित खाद और नियमित सिंचाई जारी रखें।"},
+      chemical:{en:"No treatment needed. Monitor weekly.",hi:"किसी उपचार की आवश्यकता नहीं। साप्ताहिक निगरानी करें।"} }
+  ],
+  Wheat: [
+    { key:"yellow_rust", name:{en:"Yellow Rust",hi:"पीला रतुआ"}, severity:"high", tone:"yellow",
+      symptoms:{en:"Yellow-orange powdery stripes running along leaf veins.",hi:"पत्ती की शिराओं के साथ पीली-नारंगी पाउडर जैसी धारियां।"},
+      organic:{en:"Sulphur dust application; avoid excess nitrogen fertilizer.",hi:"सल्फर पाउडर का प्रयोग; अतिरिक्त नाइट्रोजन उर्वरक से बचें।"},
+      chemical:{en:"Propiconazole 25% EC @ 1ml/L water at first sign.",hi:"प्रोपिकोनाज़ोल 25% EC @ 1 मिली/लीटर पानी पहला लक्षण दिखते ही।"} },
+    { key:"leaf_blight", name:{en:"Leaf Blight",hi:"पत्ती झुलसा"}, severity:"medium", tone:"brown",
+      symptoms:{en:"Brown elongated lesions with yellow halo on upper leaves.",hi:"ऊपरी पत्तियों पर पीले घेरे के साथ भूरे लंबे घाव।"},
+      organic:{en:"Trichoderma-based seed and soil treatment before next sowing.",hi:"अगली बुवाई से पहले ट्राइकोडर्मा आधारित बीज व मिट्टी उपचार।"},
+      chemical:{en:"Propiconazole spray at 10-day interval.",hi:"10 दिन के अंतराल पर प्रोपिकोनाज़ोल छिड़काव।"} }
+  ],
+  Cotton: [
+    { key:"leaf_curl", name:{en:"Leaf Curl Virus",hi:"पत्ती मरोड़ विषाणु"}, severity:"high", tone:"green",
+      symptoms:{en:"Upward curling of leaves, thickened veins, stunted growth. Spread by whitefly.",hi:"पत्तियों का ऊपर की ओर मुड़ना, मोटी शिराएं, बौनी वृद्धि। सफेद मक्खी से फैलता है।"},
+      organic:{en:"Yellow sticky traps to control whitefly; neem-based spray.",hi:"सफेद मक्खी नियंत्रण हेतु पीले चिपचिपे जाल; नीम आधारित छिड़काव।"},
+      chemical:{en:"Imidacloprid 17.8% SL @ 0.3ml/L to control whitefly vector.",hi:"सफेद मक्खी नियंत्रण हेतु इमिडाक्लोप्रिड 17.8% SL @ 0.3 मिली/लीटर।"} },
+    { key:"boll_rot", name:{en:"Boll Rot",hi:"गूलर सड़न"}, severity:"medium", tone:"brown",
+      symptoms:{en:"Dark rotting patches on cotton bolls, especially after heavy rain.",hi:"भारी बारिश के बाद कपास के गूलरों पर काले सड़े हुए धब्बे।"},
+      organic:{en:"Ensure good drainage; remove and destroy infected bolls.",hi:"अच्छी जल निकासी सुनिश्चित करें; संक्रमित गूलर हटाकर नष्ट करें।"},
+      chemical:{en:"Copper oxychloride spray at boll formation stage.",hi:"गूलर बनने के समय कॉपर ऑक्सीक्लोराइड का छिड़काव।"} }
+  ],
+  Rice: [
+    { key:"blast", name:{en:"Rice Blast",hi:"धान का झोंका रोग"}, severity:"high", tone:"brown",
+      symptoms:{en:"Diamond-shaped grey-centered lesions with brown margins on leaves.",hi:"पत्तियों पर भूरे किनारे और भूरे-भूरे केंद्र वाले हीरे के आकार के घाव।"},
+      organic:{en:"Balanced potassium application; avoid dense planting.",hi:"संतुलित पोटैशियम प्रयोग; घनी रोपाई से बचें।"},
+      chemical:{en:"Tricyclazole 75% WP @ 0.6g/L water.",hi:"ट्राइसाइक्लाज़ोल 75% WP @ 0.6 ग्राम/लीटर पानी।"} },
+    { key:"bacterial_blight", name:{en:"Bacterial Leaf Blight",hi:"जीवाणु पत्ती झुलसा"}, severity:"medium", tone:"yellow",
+      symptoms:{en:"Yellowing from leaf tip, wavy lesion margins, wilting in severe cases.",hi:"पत्ती के सिरे से पीलापन, लहरदार घाव किनारे, गंभीर मामलों में मुरझाना।"},
+      organic:{en:"Use resistant varieties; avoid field flooding after infection.",hi:"प्रतिरोधी किस्मों का उपयोग करें; संक्रमण के बाद खेत में जलभराव से बचें।"},
+      chemical:{en:"Copper-based bactericide + streptocycline as per KVK advice.",hi:"KVK सलाह अनुसार कॉपर आधारित जीवाणुनाशक + स्ट्रेप्टोसाइक्लिन।"} }
+  ],
+  Potato: [
+    { key:"late_blight_p", name:{en:"Late Blight",hi:"पछेती झुलसा रोग"}, severity:"high", tone:"brown",
+      symptoms:{en:"Dark brown blotches on leaves with white fungal ring on undersides.",hi:"पत्तियों पर गहरे भूरे धब्बे, नीचे की ओर सफेद फफूंद का घेरा।"},
+      organic:{en:"Copper oxychloride spray; destroy volunteer plants.",hi:"कॉपर ऑक्सीक्लोराइड छिड़काव; अनचाहे पौधे नष्ट करें।"},
+      chemical:{en:"Cymoxanil + Mancozeb spray at 7-day interval in humid weather.",hi:"नम मौसम में 7 दिन के अंतराल पर साइमोक्सानिल + मैंकोज़ेब छिड़काव।"} },
+    { key:"scab", name:{en:"Common Scab",hi:"सामान्य पपड़ी रोग"}, severity:"low", tone:"brown",
+      symptoms:{en:"Rough, corky brown lesions on tuber surface, minimal effect on foliage.",hi:"कंद की सतह पर खुरदरे, भूरे घाव, पत्तियों पर कम प्रभाव।"},
+      organic:{en:"Maintain soil pH below 5.2; avoid over-liming.",hi:"मिट्टी का pH 5.2 से कम रखें; अत्यधिक चूना डालने से बचें।"},
+      chemical:{en:"Generally managed culturally; chemical control rarely needed.",hi:"आमतौर पर सांस्कृतिक तरीकों से प्रबंधित; रासायनिक नियंत्रण शायद ही आवश्यक।"} }
+  ]
+};
+
+const STR = {
+  en:{ tagline:"AI Crop Health Scanner", startCam:"Start Camera", stopCam:"Stop", capture:"Capture Leaf",
+       hint:"Point the camera at an affected leaf, or upload a photo, to begin diagnosis.",
+       analyzing:"ANALYZING LEAF TEXTURE…", ticket:"Diagnosis Report", confidence:"AI Confidence",
+       symptoms:"Symptoms Observed", organic:"Organic Remedy", chemical:"Chemical Option",
+       saveLog:"Save to Log", askExpert:"Ask an Agronomist", historyHint:"Every scan you run is saved here, on this device.",
+       emptyHistory:"No scans yet. Diagnose a leaf to start your field log.", newScan:"New Scan",
+       sevLow:"Low risk", sevMedium:"Moderate risk", sevHigh:"High risk" },
+  hi:{ tagline:"एआई फसल स्वास्थ्य स्कैनर", startCam:"कैमरा शुरू करें", stopCam:"रोकें", capture:"पत्ती कैप्चर करें",
+       hint:"निदान शुरू करने के लिए प्रभावित पत्ती पर कैमरा रखें, या फोटो अपलोड करें।",
+       analyzing:"पत्ती की बनावट का विश्लेषण हो रहा है…", ticket:"निदान रिपोर्ट", confidence:"एआई विश्वास स्तर",
+       symptoms:"देखे गए लक्षण", organic:"जैविक उपाय", chemical:"रासायनिक विकल्प",
+       saveLog:"लॉग में सहेजें", askExpert:"कृषि विशेषज्ञ से पूछें", historyHint:"आपके सभी स्कैन यहाँ, इसी डिवाइस पर सहेजे जाते हैं।",
+       emptyHistory:"अभी तक कोई स्कैन नहीं। अपना फील्ड लॉग शुरू करने के लिए एक पत्ती जांचें।", newScan:"नया स्कैन",
+       sevLow:"कम जोखिम", sevMedium:"मध्यम जोखिम", sevHigh:"उच्च जोखिम" }
+};
+
+let lang = "en";
+let selectedCrop = "Tomato";
+let stream = null;
+let lastCaptureDataUrl = null;
+const apiKey = "AIzaSyC15B-PpUAhZFZuUbmtcdGMrnLxbhbRTCo";
+let scanHistory = JSON.parse(localStorage.getItem("krishi_history") || "[]");
+
+/* ---------------- INIT UI ---------------- */
+const cropRow        = document.getElementById("cropRow");
+const video          = document.getElementById("video");
+const capturedImg    = document.getElementById("capturedImg");
+const vfPlaceholder  = document.getElementById("vfPlaceholder");
+const captureBtn     = document.getElementById("captureBtn");
+const uploadBtn      = document.getElementById("uploadBtn");
+const fileInput      = document.getElementById("fileInput");
+const canvas         = document.getElementById("canvas");
+const viewfinder     = document.getElementById("viewfinder");
+const analyseBtn     = document.getElementById("analyseBtn");
+const analyseBtnText = document.getElementById("analyseBtnText");
+const reportCard     = document.getElementById("reportCard");
+const errorBox       = document.getElementById("errorBox");
+
+
+/* --- Crop chips --- */
+CROPS.forEach(c => {
+  const ch = document.createElement("button");
+  ch.className = "crop-chip" + (c === selectedCrop ? " active" : "");
+  ch.textContent = c;
+  ch.addEventListener("click", () => {
+    selectedCrop = c;
+    document.querySelectorAll(".crop-chip").forEach(x => x.classList.remove("active"));
+    ch.classList.add("active");
+  });
+  cropRow.appendChild(ch);
+});
+
+/* --- Nav --- */
+document.querySelectorAll(".nav-btn[data-view]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    ["scan","history","alerts"].forEach(v =>
+      document.getElementById("view-" + v).classList.toggle("hidden", v !== btn.dataset.view)
+    );
+    if (btn.dataset.view === "history") renderHistory();
+  });
+});
+
+/* --- Language toggle --- */
+document.getElementById("langToggle").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-lang]");
+  if (!btn) return;
+  lang = btn.dataset.lang;
+  document.querySelectorAll("#langToggle button").forEach(b =>
+    b.classList.toggle("active", b.dataset.lang === lang)
+  );
+  document.getElementById("tagline").textContent     = STR[lang].tagline;
+  document.getElementById("vfHint").textContent      = STR[lang].hint;
+  document.getElementById("historyHint").textContent = STR[lang].historyHint;
+  updateCameraUI();
+});
+
+
+
+/* ---------------- CAMERA ---------------- */
+function updateCameraUI() {
+  if (stream) {
+    video.classList.remove("hidden");
+    capturedImg.classList.add("hidden");
+    vfPlaceholder.classList.add("hidden");
+    captureBtn.textContent = "📸 " + STR[lang].capture;
+  } else {
+    video.classList.add("hidden");
+    captureBtn.textContent = "📷 " + STR[lang].startCam;
+  }
+}
+
+async function startCamera() {
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error("Camera API is not supported by this browser.");
+    }
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      audio: false
+    });
+    video.srcObject = stream;
+    video.onloadedmetadata = async () => {
+      try { await video.play(); } catch (err) { console.error("Video playback error:", err); }
+    };
+    updateCameraUI();
+  } catch (error) {
+    console.error("Camera error:", error);
+    stream = null;
+    updateCameraUI();
+    alert("Camera could not be started.\n\nPlease allow camera permission and make sure this page is running on HTTPS or localhost.");
+  }
+}
+
+function stopCamera() {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+  video.srcObject = null;
+  updateCameraUI();
+  vfPlaceholder.classList.remove("hidden");
+  capturedImg.classList.add("hidden");
+}
+
+/* FIX: capturePhoto does not call stopCamera() */
+function capturePhoto() {
+  if (!stream || video.readyState < 2) return;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  lastCaptureDataUrl = canvas.toDataURL("image/jpeg", 0.9);
+
+  // Stop stream directly — avoids stopCamera() re-showing the placeholder
+  stream.getTracks().forEach(track => track.stop());
+  stream = null;
+
+  capturedImg.src = lastCaptureDataUrl;
+  capturedImg.classList.remove("hidden");
+  video.classList.add("hidden");
+  vfPlaceholder.classList.add("hidden");
+  updateCameraUI();
+  showAnalyseButton();
+}
+
+function showAnalyseButton() {
+  analyseBtn.classList.add("show");
+  reportCard.classList.remove("show");
+  errorBox.classList.remove("show");
+}
+
+captureBtn.addEventListener("click", async () => {
+  if (!stream) {
+    await startCamera();
+  } else {
+    capturePhoto();
+  }
+});
+
+uploadBtn.addEventListener("click", () => {
+  fileInput.click();
+});
+
+fileInput.addEventListener("change", event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = event => {
+    lastCaptureDataUrl = event.target.result;
+    capturedImg.src = lastCaptureDataUrl;
+    capturedImg.classList.remove("hidden");
+    video.classList.add("hidden");
+    vfPlaceholder.classList.add("hidden");
+    showAnalyseButton();
+  };
+  reader.readAsDataURL(file);
+});
+
+window.addEventListener("beforeunload", () => {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+  }
+});
+
+updateCameraUI();
+
+/* ================================================
+   GEMINI API — only this section changed from DB
+   ================================================ */
+analyseBtn.addEventListener("click", async () => {
+  if (!lastCaptureDataUrl) return;
+
+  // Loading state
+  analyseBtn.disabled = true;
+  analyseBtn.classList.add("loading");
+  analyseBtnText.textContent = STR[lang].analyzing;
+  viewfinder.classList.add("scanning");
+  document.getElementById("scanStatus").textContent = STR[lang].analyzing;
+  reportCard.classList.remove("show");
+  errorBox.classList.remove("show");
+
+  try {
+    const base64Data = lastCaptureDataUrl.split(",")[1];
+    const mimeType   = lastCaptureDataUrl.split(";")[0].split(":")[1];
+
+    const prompt = `You are an expert agricultural plant pathologist AI embedded in KrishiRakshak, a crop disease scanner app for Indian farmers.
+
+Crop selected by user: ${selectedCrop}
+Language: ${lang === "hi" ? "Hindi (Devanagari)" : "English"}
+
+Analyze the leaf/plant image and respond ONLY with a valid JSON object. No markdown, no text outside JSON.
+
+{
+  "disease_name": "Short disease name or 'Healthy Plant'",
+  "severity": "low" or "medium" or "high",
+  "confidence": <integer 60-98>,
+  "symptoms": "1-2 sentences describing visible symptoms",
+  "organic_remedy": "Practical organic treatment",
+  "chemical_remedy": "Specific chemical with dosage",
+  "additional_tip": "One short actionable tip for the farmer"
+}
+
+If not a plant image: disease_name = "Not a plant image", severity = "low".
+If healthy: disease_name = "Healthy Plant", severity = "low".
+All text values must be in ${lang === "hi" ? "Hindi" : "English"}.`;
+
+    /* ---- GEMINI 1.5 FLASH — free, 1500 req/day ---- */
+    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const response = await fetch(GEMINI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { inline_data: { mime_type: mimeType, data: base64Data } },
+            { text: prompt }
+          ]
+        }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 1000 }
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData?.error?.message || `API error ${response.status}`);
+    }
+
+    const data = await response.json();
+    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    if (!rawText) throw new Error("Empty response from Gemini.");
+
+    // Strip any accidental markdown fences
+    const clean = rawText.replace(/```json|```/g, "").trim();
+    const result = JSON.parse(clean);
+
+    renderReport(result);
+    saveToHistory(result);
+
+  } catch(err) {
+    console.error(err);
+    if (err.message.includes("API_KEY_INVALID") || err.message.includes("API key")) {
+      showError("Invalid API key. Check your Gemini key and try again.");
+    } else if (err.message.includes("JSON")) {
+      showError("AI returned an unexpected format. Please try again.");
+    } else {
+      showError("Analysis failed: " + err.message);
+    }
+  } finally {
+    analyseBtn.disabled = false;
+    analyseBtn.classList.remove("loading");
+    analyseBtnText.textContent = "🔬 " + (lang === "hi" ? "AI से विश्लेषण करें" : "Analyse with AI");
+    viewfinder.classList.remove("scanning");
+  }
+});
+
+/* ---------------- RENDER REPORT ---------------- */
+function renderReport(r) {
+  const sevClass = { low:"sev-low", medium:"sev-medium", high:"sev-high" }[r.severity] || "sev-low";
+  const sevLabel = { low:STR[lang].sevLow, medium:STR[lang].sevMedium, high:STR[lang].sevHigh }[r.severity] || "";
+
+  reportCard.innerHTML = `
+    <div class="report-head">
+      <div>
+        <div class="ticket-label">${STR[lang].ticket} · ${selectedCrop}</div>
+        <h2>${r.disease_name}</h2>
+      </div>
+      <span class="severity-pill ${sevClass}">${sevLabel}</span>
+    </div>
+    <div class="confidence-bar-wrap">
+      <div class="confidence-label">
+        <span>${STR[lang].confidence}</span>
+        <span>${r.confidence}%</span>
+      </div>
+      <div class="confidence-track">
+        <div class="confidence-fill" style="width:${r.confidence}%"></div>
+      </div>
+    </div>
+    <div class="report-section">
+      <h4>${STR[lang].symptoms}</h4>
+      <p>${r.symptoms}</p>
+    </div>
+    <div class="report-section">
+      <div class="treatment-grid">
+        <div class="treatment-box">
+          <div class="t-title">🌿 ${STR[lang].organic}</div>
+          <p>${r.organic_remedy}</p>
+        </div>
+        <div class="treatment-box">
+          <div class="t-title">⚗️ ${STR[lang].chemical}</div>
+          <p>${r.chemical_remedy}</p>
+        </div>
+      </div>
+    </div>
+    ${r.additional_tip ? `
+    <div class="report-section" style="padding-top:4px">
+      <h4>💡 Field Tip</h4>
+      <p>${r.additional_tip}</p>
+    </div>` : ""}
+    <div class="cta-row">
+      <button class="cta-outline" onclick="resetScan()">📷 ${STR[lang].newScan}</button>
+      <button class="cta-fill" onclick="shareReport()">📤 ${STR[lang].saveLog}</button>
+    </div>
+  `;
+
+  reportCard.classList.add("show");
+  reportCard.scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+
+function showError(msg) {
+  errorBox.textContent = "⚠️ " + msg;
+  errorBox.classList.add("show");
+}
+
+function resetScan() {
+  lastCaptureDataUrl = null;
+  capturedImg.classList.add("hidden");
+  vfPlaceholder.classList.remove("hidden");
+  reportCard.classList.remove("show");
+  errorBox.classList.remove("show");
+  analyseBtn.classList.remove("show");
+  fileInput.value = "";
+  updateCameraUI();
+}
+
+function shareReport() {
+  const h2 = reportCard.querySelector("h2");
+  const diseaseName = h2 ? h2.textContent : "Unknown";
+  const text = `KrishiRakshak Scan\nCrop: ${selectedCrop}\nDiagnosis: ${diseaseName}\nDate: ${new Date().toLocaleDateString("en-IN")}`;
+  if (navigator.share) {
+    navigator.share({ title:"KrishiRakshak Report", text });
+  } else {
+    navigator.clipboard.writeText(text)
+      .then(() => alert("Report copied to clipboard!"))
+      .catch(() => alert(text));
+  }
+}
+
+/* ---------------- HISTORY ---------------- */
+function saveToHistory(r) {
+  scanHistory.unshift({
+    crop: selectedCrop,
+    disease: r.disease_name,
+    severity: r.severity,
+    date: new Date().toLocaleDateString("en-IN")
+  });
+  if (scanHistory.length > 20) scanHistory.pop();
+  localStorage.setItem("krishi_history", JSON.stringify(scanHistory));
+}
+
+function renderHistory() {
+  const list = document.getElementById("historyList");
+  if (!scanHistory.length) {
+    list.innerHTML = `<div class="empty-state"><div class="ei">📋</div><p>${STR[lang].emptyHistory}</p></div>`;
+    return;
+  }
+  const dot = { low:"🟢", medium:"🟡", high:"🔴" };
+  list.innerHTML = scanHistory.map(s => `
+    <div class="history-item">
+      <div class="hi-left">
+        <span class="hi-crop">${s.crop}</span>
+        <span class="hi-disease">${s.disease}</span>
+        <span class="hi-date">${s.date}</span>
+      </div>
+      <span>${dot[s.severity] || "🟢"}</span>
+    </div>
+  `).join("");
+}
+</script>
+</body>
+</html>
