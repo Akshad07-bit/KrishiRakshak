@@ -405,7 +405,7 @@ let lang = "en";
 let selectedCrop = "Tomato";
 let stream = null;
 let lastCaptureDataUrl = null;
-const apiKey = "AIzaSyB5rJK5vrPc89tQsrFuFC5u9nH731CvIi8";
+const apiKey = "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";
 let scanHistory = JSON.parse(localStorage.getItem("krishi_history") || "[]");
 
 /* ---------------- INIT UI ---------------- */
@@ -621,20 +621,26 @@ If not a plant image: disease_name = "Not a plant image", severity = "low".
 If healthy: disease_name = "Healthy Plant", severity = "low".
 All text values must be in ${lang === "hi" ? "Hindi" : "English"}.`;
 
-    /* ---- GEMINI 1.5 FLASH — free, 1500 req/day ---- */
-    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    /* ---- GROQ — free, vision supported ---- */
+    const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-    const response = await fetch(GEMINI_URL, {
+    const response = await fetch(GROQ_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
       body: JSON.stringify({
-        contents: [{
-          parts: [
-            { inline_data: { mime_type: mimeType, data: base64Data } },
-            { text: prompt }
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        messages: [{
+          role: "user",
+          content: [
+            { type: "text", text: prompt },
+            { type: "image_url", image_url: { url: lastCaptureDataUrl } }
           ]
         }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 1000 }
+        max_tokens: 1000,
+        temperature: 0.2
       })
     });
 
@@ -644,8 +650,8 @@ All text values must be in ${lang === "hi" ? "Hindi" : "English"}.`;
     }
 
     const data = await response.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    if (!rawText) throw new Error("Empty response from Gemini.");
+    const rawText = data?.choices?.[0]?.message?.content || "";
+    if (!rawText) throw new Error("Empty response from Groq.");
 
     // Strip any accidental markdown fences
     const clean = rawText.replace(/```json|```/g, "").trim();
@@ -656,8 +662,8 @@ All text values must be in ${lang === "hi" ? "Hindi" : "English"}.`;
 
   } catch(err) {
     console.error(err);
-    if (err.message.includes("API_KEY_INVALID") || err.message.includes("API key")) {
-      showError("Invalid API key. Check your Gemini key and try again.");
+    if (err.message.includes("401") || err.message.includes("Invalid API Key") || err.message.includes("api_key")) {
+      showError("Invalid API key. Check your Groq key and try again.");
     } else if (err.message.includes("JSON")) {
       showError("AI returned an unexpected format. Please try again.");
     } else {
