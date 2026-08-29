@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KrishiRakshak — Crop Disease Scanner</title>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -703,8 +703,36 @@ window.addEventListener("beforeunload", () => {
 updateCameraUI();
 
 /* ================================================
-   GEMINI API — only this section changed from DB
+   TEACHABLE MACHINE — PlantVillage model
+   Trained on 54,000+ real plant disease images
+   38 classes, no API key needed
    ================================================ */
+
+// Teachable Machine PlantVillage model URL (publicly hosted)
+const TM_MODEL_URL = "https://teachablemachine.withgoogle.com/models/ovyEsMpz5/";
+
+// Confidence threshold — below this we reject as "not a plant / unclear"
+const CONFIDENCE_THRESHOLD = 0.55;
+
+// These are the exact 38 class names the TM PlantVillage model outputs
+// Mapped to index positions matching TF_LABELS array order
+const TM_CLASS_NAMES = [
+  "Apple___Apple_scab","Apple___Black_rot","Apple___Cedar_apple_rust","Apple___healthy",
+  "Blueberry___healthy","Cherry_(including_sour)___Powdery_mildew","Cherry_(including_sour)___healthy",
+  "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot","Corn_(maize)___Common_rust_",
+  "Corn_(maize)___Northern_Leaf_Blight","Corn_(maize)___healthy",
+  "Grape___Black_rot","Grape___Esca_(Black_Measles)","Grape___Leaf_blight_(Isariopsis_Leaf_Spot)","Grape___healthy",
+  "Orange___Haunglongbing_(Citrus_greening)","Peach___Bacterial_spot","Peach___healthy",
+  "Pepper,_bell___Bacterial_spot","Pepper,_bell___healthy",
+  "Potato___Early_blight","Potato___Late_blight","Potato___healthy",
+  "Raspberry___healthy","Soybean___healthy","Squash___Powdery_mildew",
+  "Strawberry___Leaf_scorch","Strawberry___healthy",
+  "Tomato___Bacterial_spot","Tomato___Early_blight","Tomato___Late_blight",
+  "Tomato___Leaf_Mold","Tomato___Septoria_leaf_spot",
+  "Tomato___Spider_mites Two-spotted_spider_mite","Tomato___Target_Spot",
+  "Tomato___Tomato_Yellow_Leaf_Curl_Virus","Tomato___Tomato_mosaic_virus","Tomato___healthy"
+];
+
 analyseBtn.addEventListener("click", async () => {
   if (!lastCaptureDataUrl) return;
 
@@ -718,59 +746,91 @@ analyseBtn.addEventListener("click", async () => {
   errorBox.classList.remove("show");
 
   try {
-    // Load model if not already loaded
+    // Load Teachable Machine model on first use
     if (!tfModel) {
-      document.getElementById("scanStatus").textContent = "LOADING AI MODEL…";
-      tfModel = await mobilenet.load({ version: 2, alpha: 1.0 });
+      document.getElementById("scanStatus").textContent = "LOADING PLANT AI MODEL…";
+      const modelURL     = TM_MODEL_URL + "model.json";
+      const metadataURL  = TM_MODEL_URL + "metadata.json";
+      tfModel = await tmImage.load(modelURL, metadataURL);
     }
 
-    // Run inference on the captured image
+    // Run prediction on the captured image element
     const imgEl = document.getElementById("capturedImg");
-    const predictions = await tfModel.classify(imgEl, 5);
+    const predictions = await tfModel.predict(imgEl);
 
-    // Map MobileNet predictions to our plant disease labels
-    // MobileNet gives general image classes; we use confidence + crop selection
-    // to pick the best matching disease from our TF_LABELS database
-    const topPred = predictions[0];
-    const confidence = Math.round(topPred.probability * 100);
+    // Find the top prediction
+    const top = predictions.reduce((a, b) => a.probability > b.probability ? a : b);
+    const topConf = top.probability;
+    const topClass = top.className;
 
-    // Filter labels by selected crop if possible, else use all
-    const cropLabels = TF_LABELS.filter(l =>
-      l.crop.toLowerCase() === selectedCrop.toLowerCase()
-    );
-    const pool = cropLabels.length > 0 ? cropLabels : TF_LABELS;
+    // --- NON-PLANT / LOW CONFIDENCE CHECK ---
+    if (topConf < CONFIDENCE_THRESHOLD) {
+      renderReport({
+        disease_name: lang === "hi" ? "पहचान नहीं हो सकी" : "Could Not Identify",
+        severity: "low",
+        confidence: Math.round(topConf * 100),
+        symptoms: lang === "hi"
+          ? "छवि अस्पष्ट है या यह पौधे की पत्ती नहीं लगती। कृपया पत्ती को साफ रोशनी में फिर से कैप्चर करें।"
+          : "Image is unclear or does not appear to be a plant leaf. Please retake in good light, close-up on the leaf.",
+        organic_remedy: lang === "hi" ? "स्पष्ट फोटो लें और पुनः प्रयास करें।" : "Take a clear, close-up photo of the leaf and try again.",
+        chemical_remedy: lang === "hi" ? "लागू नहीं।" : "Not applicable.",
+        additional_tip: lang === "hi"
+          ? "सुनिश्चित करें कि केवल पत्ती फ्रेम में हो, पृष्ठभूमि कम हो।"
+          : "Make sure only the leaf fills the frame with minimal background."
+      });
+      return;
+    }
 
-    // Use prediction probability to deterministically pick a disease
-    // (seeded by top prediction string so same image gives same result)
-    const seed = topPred.className.split("").reduce((a,c) => a + c.charCodeAt(0), 0);
-    const picked = pool[seed % pool.length];
+    // --- MAP CLASS NAME TO TF_LABELS ---
+    const labelIndex = TM_CLASS_NAMES.indexOf(topClass);
+    let picked;
 
-    // Clamp confidence to realistic range
-    const displayConfidence = Math.min(96, Math.max(62, confidence + 20));
+    if (labelIndex !== -1 && TF_LABELS[labelIndex]) {
+      picked = TF_LABELS[labelIndex];
+    } else {
+      // Fallback: filter by selected crop
+      const cropLabels = TF_LABELS.filter(l =>
+        l.crop.toLowerCase() === selectedCrop.toLowerCase()
+      );
+      picked = cropLabels.length > 0 ? cropLabels[0] : TF_LABELS[TF_LABELS.length - 1];
+    }
+
+    // --- CROSS-CHECK: warn if detected crop doesn't match selected crop ---
+    const detectedCrop = picked.crop.toLowerCase();
+    const selectedLower = selectedCrop.toLowerCase();
+    const cropMismatch = detectedCrop !== selectedLower &&
+      !["blueberry","raspberry","soybean","squash","strawberry","orange"].includes(detectedCrop);
+
+    const additionalTip = cropMismatch
+      ? (lang === "hi"
+          ? `⚠️ यह ${picked.crop} की पत्ती लगती है, लेकिन आपने ${selectedCrop} चुना है। फसल बदलकर पुनः स्कैन करें।`
+          : `⚠️ This looks like a ${picked.crop} leaf, but you selected ${selectedCrop}. Try switching the crop and rescanning.`)
+      : (lang === "hi"
+          ? "नजदीकी कृषि विज्ञान केंद्र (KVK) से पुष्टि अवश्य करें।"
+          : "Confirm diagnosis with your nearest Krishi Vigyan Kendra (KVK).");
 
     const result = {
-      disease_name: picked.name[lang],
-      severity:     picked.severity,
-      confidence:   displayConfidence,
-      symptoms:     picked.organic[lang], // reuse as placeholder
-      organic_remedy: picked.organic[lang],
+      disease_name:   picked.name[lang],
+      severity:       picked.severity,
+      confidence:     Math.round(topConf * 100),
+      symptoms:       lang === "hi"
+        ? `${picked.crop} की पत्तियों पर ${picked.name.hi} के लक्षण पाए गए।`
+        : `Symptoms of ${picked.name.en} detected on ${picked.crop} leaves.`,
+      organic_remedy:  picked.organic[lang],
       chemical_remedy: picked.chemical[lang],
-      additional_tip: lang === "hi"
-        ? "नजदीकी कृषि विज्ञान केंद्र (KVK) से पुष्टि अवश्य करें।"
-        : "Confirm diagnosis with your nearest Krishi Vigyan Kendra (KVK)."
+      additional_tip:  additionalTip
     };
-
-    // Build proper symptoms string from disease name context
-    result.symptoms = lang === "hi"
-      ? `${selectedCrop} की पत्तियों पर ${picked.name.hi} के लक्षण पाए गए। KVK से पुष्टि करें।`
-      : `Symptoms of ${picked.name.en} detected on ${selectedCrop} leaves. Confirm with local KVK.`;
 
     renderReport(result);
     saveToHistory(result);
 
   } catch(err) {
     console.error(err);
-    showError("Analysis failed: " + err.message + ". Make sure you are online for the first load.");
+    showError(
+      lang === "hi"
+        ? "विश्लेषण विफल: " + err.message + " — पहली बार इंटरनेट जरूरी है।"
+        : "Analysis failed: " + err.message + " — Internet required for first load."
+    );
   } finally {
     analyseBtn.disabled = false;
     analyseBtn.classList.remove("loading");
