@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KrishiRakshak — Crop Disease Scanner</title>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -703,19 +702,17 @@ window.addEventListener("beforeunload", () => {
 updateCameraUI();
 
 /* ================================================
-   TEACHABLE MACHINE — PlantVillage model
-   Trained on 54,000+ real plant disease images
-   38 classes, no API key needed
+   TENSORFLOW.JS — PlantVillage model
+   Uses a real TensorFlow.js MobileNetV2 model.
+   No API key is required.
    ================================================ */
 
-// Teachable Machine PlantVillage model URL (publicly hosted)
-const TM_MODEL_URL = "https://teachablemachine.withgoogle.com/models/ovyEsMpz5/";
+const PLANT_MODEL_URL =
+  "https://cdn.jsdelivr.net/gh/zhangys11/tfjs-app@main/tfjsa/static/Mobilenet_Leaf/model.json";
 
-// Confidence threshold — below this we reject as "not a plant / unclear"
 const CONFIDENCE_THRESHOLD = 0.55;
 
-// These are the exact 38 class names the TM PlantVillage model outputs
-// Mapped to index positions matching TF_LABELS array order
+/* PlantVillage's fixed 38-class order */
 const TM_CLASS_NAMES = [
   "Apple___Apple_scab","Apple___Black_rot","Apple___Cedar_apple_rust","Apple___healthy",
   "Blueberry___healthy","Cherry_(including_sour)___Powdery_mildew","Cherry_(including_sour)___healthy",
@@ -733,10 +730,52 @@ const TM_CLASS_NAMES = [
   "Tomato___Tomato_Yellow_Leaf_Curl_Virus","Tomato___Tomato_mosaic_virus","Tomato___healthy"
 ];
 
+async function loadPlantModel() {
+  if (tfModel) return tfModel;
+
+  document.getElementById("scanStatus").textContent =
+    lang === "hi" ? "प्लांट एआई मॉडल लोड हो रहा है…" : "LOADING PLANT AI MODEL…";
+
+  /* This is a normal TensorFlow.js model, not a Teachable Machine model. */
+  tfModel = await tf.loadLayersModel(PLANT_MODEL_URL);
+
+  return tfModel;
+}
+
+function getPredictionTensor(imageElement) {
+  return tf.tidy(() => {
+    return tf.browser
+      .fromPixels(imageElement)
+      .resizeBilinear([224, 224])
+      .toFloat()
+      .div(255)
+      .expandDims(0);
+  });
+}
+
+function getTopPrediction(outputTensor) {
+  const values = Array.from(outputTensor.dataSync());
+
+  let bestIndex = 0;
+  let bestValue = values[0] ?? 0;
+
+  for (let i = 1; i < values.length; i++) {
+    if (values[i] > bestValue) {
+      bestValue = values[i];
+      bestIndex = i;
+    }
+  }
+
+  return {
+    index: bestIndex,
+    confidence: bestValue,
+    className: TM_CLASS_NAMES[bestIndex] || ""
+  };
+}
+
 analyseBtn.addEventListener("click", async () => {
   if (!lastCaptureDataUrl) return;
 
-  // Loading state
   analyseBtn.disabled = true;
   analyseBtn.classList.add("loading");
   analyseBtnText.textContent = STR[lang].analyzing;
@@ -745,98 +784,122 @@ analyseBtn.addEventListener("click", async () => {
   reportCard.classList.remove("show");
   errorBox.classList.remove("show");
 
+  let inputTensor = null;
+  let outputTensor = null;
+
   try {
-    // Load Teachable Machine model on first use
-    if (!tfModel) {
-      document.getElementById("scanStatus").textContent = "LOADING PLANT AI MODEL…";
-      const modelURL     = TM_MODEL_URL + "model.json";
-      const metadataURL  = TM_MODEL_URL + "metadata.json";
-      tfModel = await tmImage.load(modelURL, metadataURL);
+    const model = await loadPlantModel();
+    const imgEl = document.getElementById("capturedImg");
+
+    if (!imgEl.complete || !imgEl.naturalWidth) {
+      await new Promise((resolve, reject) => {
+        imgEl.onload = resolve;
+        imgEl.onerror = () =>
+          reject(new Error("The captured image could not be loaded."));
+      });
     }
 
-    // Run prediction on the captured image element
-    const imgEl = document.getElementById("capturedImg");
-    const predictions = await tfModel.predict(imgEl);
+    inputTensor = getPredictionTensor(imgEl);
 
-    // Find the top prediction
-    const top = predictions.reduce((a, b) => a.probability > b.probability ? a : b);
-    const topConf = top.probability;
-    const topClass = top.className;
+    const rawOutput = model.predict(inputTensor);
+    outputTensor = Array.isArray(rawOutput) ? rawOutput[0] : rawOutput;
 
-    // --- NON-PLANT / LOW CONFIDENCE CHECK ---
-    if (topConf < CONFIDENCE_THRESHOLD) {
+    const prediction = getTopPrediction(outputTensor);
+    const topConf = prediction.confidence;
+    const topClass = prediction.className;
+
+    if (
+      !topClass ||
+      topConf < CONFIDENCE_THRESHOLD ||
+      prediction.index >= TF_LABELS.length
+    ) {
       renderReport({
         disease_name: lang === "hi" ? "पहचान नहीं हो सकी" : "Could Not Identify",
         severity: "low",
         confidence: Math.round(topConf * 100),
         symptoms: lang === "hi"
-          ? "छवि अस्पष्ट है या यह पौधे की पत्ती नहीं लगती। कृपया पत्ती को साफ रोशनी में फिर से कैप्चर करें।"
-          : "Image is unclear or does not appear to be a plant leaf. Please retake in good light, close-up on the leaf.",
-        organic_remedy: lang === "hi" ? "स्पष्ट फोटो लें और पुनः प्रयास करें।" : "Take a clear, close-up photo of the leaf and try again.",
+          ? "छवि अस्पष्ट है या मॉडल पर्याप्त विश्वास के साथ पहचान नहीं कर सका। कृपया पत्ती को साफ रोशनी में फिर से कैप्चर करें।"
+          : "The image is unclear or the model could not identify the leaf with enough confidence. Please retake the photo in good light.",
+        organic_remedy: lang === "hi"
+          ? "पत्ती की साफ, नज़दीकी फोटो लें और पुनः प्रयास करें।"
+          : "Take a clear, close-up photo of the leaf and try again.",
         chemical_remedy: lang === "hi" ? "लागू नहीं।" : "Not applicable.",
         additional_tip: lang === "hi"
-          ? "सुनिश्चित करें कि केवल पत्ती फ्रेम में हो, पृष्ठभूमि कम हो।"
-          : "Make sure only the leaf fills the frame with minimal background."
+          ? "सुनिश्चित करें कि पत्ती फ्रेम का अधिकांश भाग भरती हो और पृष्ठभूमि कम हो।"
+          : "Make sure the leaf fills most of the frame and there is minimal background."
       });
+
       return;
     }
 
-    // --- MAP CLASS NAME TO TF_LABELS ---
     const labelIndex = TM_CLASS_NAMES.indexOf(topClass);
-    let picked;
+    const picked = labelIndex !== -1 ? TF_LABELS[labelIndex] : null;
 
-    if (labelIndex !== -1 && TF_LABELS[labelIndex]) {
-      picked = TF_LABELS[labelIndex];
-    } else {
-      // Fallback: filter by selected crop
-      const cropLabels = TF_LABELS.filter(l =>
-        l.crop.toLowerCase() === selectedCrop.toLowerCase()
-      );
-      picked = cropLabels.length > 0 ? cropLabels[0] : TF_LABELS[TF_LABELS.length - 1];
+    if (!picked) {
+      throw new Error("The model returned an unsupported PlantVillage class.");
     }
 
-    // --- CROSS-CHECK: warn if detected crop doesn't match selected crop ---
     const detectedCrop = picked.crop.toLowerCase();
     const selectedLower = selectedCrop.toLowerCase();
-    const cropMismatch = detectedCrop !== selectedLower &&
-      !["blueberry","raspberry","soybean","squash","strawberry","orange"].includes(detectedCrop);
+
+    const cropMismatch =
+      detectedCrop !== selectedLower &&
+      !["blueberry","raspberry","soybean","squash","strawberry","orange"]
+        .includes(detectedCrop);
 
     const additionalTip = cropMismatch
-      ? (lang === "hi"
-          ? `⚠️ यह ${picked.crop} की पत्ती लगती है, लेकिन आपने ${selectedCrop} चुना है। फसल बदलकर पुनः स्कैन करें।`
-          : `⚠️ This looks like a ${picked.crop} leaf, but you selected ${selectedCrop}. Try switching the crop and rescanning.`)
-      : (lang === "hi"
-          ? "नजदीकी कृषि विज्ञान केंद्र (KVK) से पुष्टि अवश्य करें।"
-          : "Confirm diagnosis with your nearest Krishi Vigyan Kendra (KVK).");
+      ? (
+          lang === "hi"
+            ? `⚠️ यह ${picked.crop} की पत्ती लगती है, लेकिन आपने ${selectedCrop} चुना है। फसल बदलकर पुनः स्कैन करें।`
+            : `⚠️ This looks like a ${picked.crop} leaf, but you selected ${selectedCrop}. Try switching the crop and rescanning.`
+        )
+      : (
+          lang === "hi"
+            ? "नजदीकी कृषि विज्ञान केंद्र (KVK) से पुष्टि अवश्य करें।"
+            : "Confirm diagnosis with your nearest Krishi Vigyan Kendra (KVK)."
+        );
 
     const result = {
-      disease_name:   picked.name[lang],
-      severity:       picked.severity,
-      confidence:     Math.round(topConf * 100),
-      symptoms:       lang === "hi"
+      disease_name: picked.name[lang],
+      severity: picked.severity,
+      confidence: Math.round(topConf * 100),
+      symptoms: lang === "hi"
         ? `${picked.crop} की पत्तियों पर ${picked.name.hi} के लक्षण पाए गए।`
         : `Symptoms of ${picked.name.en} detected on ${picked.crop} leaves.`,
-      organic_remedy:  picked.organic[lang],
+      organic_remedy: picked.organic[lang],
       chemical_remedy: picked.chemical[lang],
-      additional_tip:  additionalTip
+      additional_tip: additionalTip
     };
 
     renderReport(result);
     saveToHistory(result);
 
-  } catch(err) {
-    console.error(err);
+  } catch (err) {
+    console.error("Plant AI error:", err);
+
     showError(
       lang === "hi"
-        ? "विश्लेषण विफल: " + err.message + " — पहली बार इंटरनेट जरूरी है।"
-        : "Analysis failed: " + err.message + " — Internet required for first load."
+        ? "एआई विश्लेषण विफल: " + err.message +
+          " — मॉडल पहली बार लोड करने के लिए इंटरनेट कनेक्शन आवश्यक है।"
+        : "AI analysis failed: " + err.message +
+          " — Internet is required the first time the model loads."
     );
+
   } finally {
+    if (inputTensor) inputTensor.dispose();
+
+    if (outputTensor && typeof outputTensor.dispose === "function") {
+      outputTensor.dispose();
+    }
+
     analyseBtn.disabled = false;
     analyseBtn.classList.remove("loading");
-    analyseBtnText.textContent = "🔬 " + (lang === "hi" ? "AI से विश्लेषण करें" : "Analyse with AI");
+    analyseBtnText.textContent =
+      "🔬 " + (lang === "hi" ? "AI से विश्लेषण करें" : "Analyse with AI");
+
     viewfinder.classList.remove("scanning");
-    document.getElementById("scanStatus").textContent = "ANALYZING LEAF TEXTURE…";
+    document.getElementById("scanStatus").textContent =
+      STR[lang].analyzing;
   }
 });
 
