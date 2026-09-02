@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KrishiRakshak — Crop Disease Scanner</title>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -225,6 +226,58 @@
     font-size:12.5px; color:var(--alert); line-height:1.5; display:none;
   }
   .error-box.show{ display:block; }
+  .ai-status{
+    margin:8px 20px 0; padding:8px 10px; border-radius:10px;
+    background:#f1eadb; color:#6d5d3f; font-family:'IBM Plex Mono',monospace;
+    font-size:10px; line-height:1.4; display:flex; align-items:center; gap:7px;
+  }
+  .ai-status.ready{ background:#e7f1e5; color:var(--ok); }
+  .ai-status.loading{ background:#fbf0da; color:var(--warn); }
+  .demo-badge{
+    display:inline-block; margin-left:6px; padding:2px 6px; border-radius:8px;
+    background:#fbf0da; color:#8a6414; font-size:9px; font-family:'IBM Plex Mono',monospace;
+  }
+
+  /* AI RESULT / EXPLAINABILITY */
+  .result-hero{ padding:16px 18px 12px; background:linear-gradient(180deg,#fbf8ef 0%,#fff 100%); }
+  .result-complete{ display:flex; align-items:center; gap:8px; color:var(--leaf-deep); font-size:12px; font-weight:700; margin-bottom:12px; }
+  .result-complete .check{ width:25px; height:25px; border-radius:50%; background:var(--leaf); color:#fff; display:grid; place-items:center; font-size:14px; }
+  .result-main{ display:grid; grid-template-columns:105px 1fr; gap:13px; align-items:center; }
+  .result-photo{ width:105px; height:125px; border-radius:13px; object-fit:cover; border:1px solid var(--rice-dim); background:#eee; }
+  .result-label{ font-size:9px; letter-spacing:1.1px; color:#a89a7a; font-weight:700; text-transform:uppercase; }
+  .result-disease{ font-family:'Fraunces',serif; color:var(--leaf-deep); font-size:22px; line-height:1.05; margin:4px 0 6px; }
+  .result-crop{ display:inline-flex; align-items:center; gap:5px; padding:5px 8px; border-radius:10px; background:#f1eadb; color:#5c5236; font-size:10.5px; font-weight:600; }
+  .result-confidence{ margin-top:12px; }
+  .result-confidence-top{ display:flex; justify-content:space-between; align-items:center; font-size:10px; color:#7f725c; font-family:'IBM Plex Mono',monospace; margin-bottom:5px; }
+  .result-confidence-top strong{ color:var(--leaf-deep); font-size:20px; font-family:'Inter',sans-serif; }
+  .result-confidence-track{ height:9px; border-radius:9px; background:#e4dfd3; overflow:hidden; }
+  .result-confidence-fill{ height:100%; border-radius:9px; background:linear-gradient(90deg,var(--leaf),var(--turmeric)); }
+  .verify-note{ margin-top:10px; padding:9px 10px; border-radius:10px; background:#edf3e9; color:#486044; font-size:10.5px; line-height:1.45; }
+  .explain-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .explain-card{ background:#fff; border:1px solid var(--rice-dim); border-radius:14px; padding:12px; }
+  .explain-card h4{ font-size:10px; letter-spacing:.8px; color:#8a7a5c; text-transform:uppercase; margin-bottom:8px; }
+  .symptom-map{ position:relative; border-radius:11px; overflow:hidden; background:#15120f; aspect-ratio:4/3; }
+  .symptom-map img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .map-legend{ display:flex; align-items:center; gap:6px; margin-top:7px; font-size:9px; color:#8a7a5c; }
+  .map-gradient{ flex:1; height:6px; border-radius:6px; background:linear-gradient(90deg,#2d69a8,#62c95b,#f0d334,#d64b24); }
+  .map-note{ font-size:9.5px; color:#6f634f; line-height:1.4; margin-top:6px; }
+  .severity-box{ display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:145px; }
+  .severity-gauge{ width:145px; height:74px; border-radius:145px 145px 0 0; background:conic-gradient(from 270deg, var(--ok) 0deg 55deg, var(--turmeric) 55deg 125deg, var(--alert) 125deg 180deg, transparent 180deg); position:relative; overflow:hidden; }
+  .severity-gauge::after{ content:""; position:absolute; left:16px; right:16px; bottom:0; height:58px; background:#fff; border-radius:120px 120px 0 0; }
+  .severity-needle{ position:absolute; z-index:2; width:3px; height:54px; background:var(--soil); bottom:0; left:calc(50% - 1.5px); transform-origin:50% 100%; border-radius:3px; }
+  .severity-dot{ position:absolute; z-index:3; width:10px; height:10px; border-radius:50%; background:var(--soil); left:calc(50% - 5px); bottom:-1px; }
+  .severity-name{ margin-top:8px; font-weight:800; font-size:13px; text-transform:uppercase; color:var(--warn); }
+  .severity-desc{ text-align:center; color:#6f634f; font-size:10px; line-height:1.4; margin-top:3px; }
+  .why-box{ background:#f6f1e5; border-radius:11px; padding:9px 10px; font-size:10.5px; line-height:1.45; color:#514633; margin-top:9px; }
+  .result-section-title{ padding:12px 18px 6px; font-size:10px; text-transform:uppercase; letter-spacing:1px; color:#a89a7a; font-weight:700; }
+  .result-bullets{ padding:0 18px 8px; margin:0; }
+  .result-bullets li{ margin:5px 0; font-size:11.5px; line-height:1.4; color:#3a3225; }
+  .result-bullets li::marker{ color:var(--leaf); }
+  .result-disclaimer{ margin:0 18px 12px; padding:9px 10px; border-radius:10px; background:#f7f1e5; color:#766a56; font-size:9.5px; line-height:1.45; }
+  .result-actions{ padding:7px 18px 18px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .result-actions button{ padding:11px 8px; border-radius:12px; font-size:11.5px; font-weight:700; cursor:pointer; }
+  .result-actions .primary{ background:var(--leaf); color:#fff; border:none; }
+  .result-actions .secondary{ background:#fff; color:var(--soil-soft); border:1px solid var(--rice-dim); }
 
   /* NAV */
   .bottom-nav{
@@ -265,6 +318,7 @@
     <!-- SCAN VIEW -->
     <div id="view-scan">
       <div class="crop-row" id="cropRow"></div>
+      <div class="ai-status loading" id="aiStatus">⏳ AI model is loading…</div>
 
       <div class="viewfinder-wrap">
         <div class="viewfinder" id="viewfinder">
@@ -308,8 +362,8 @@
 
     <!-- ALERTS VIEW -->
     <div id="view-alerts" class="hidden">
-      <div class="section-title">District Outbreak Watch</div>
-      <div class="section-hint">Simulated regional risk, based on recent humidity and nearby reports.</div>
+      <div class="section-title">District Outbreak Watch <span class="demo-badge">DEMO DATA</span></div>
+      <div class="section-hint">Regional risk is a demonstration and should not be treated as a live government alert.</div>
       <div class="history-list" id="alertsList"></div>
     </div>
 
@@ -392,14 +446,14 @@ const STR = {
        symptoms:"Symptoms Observed", organic:"Organic Remedy", chemical:"Chemical Option",
        saveLog:"Save to Log", askExpert:"Ask an Agronomist", historyHint:"Every scan you run is saved here, on this device.",
        emptyHistory:"No scans yet. Diagnose a leaf to start your field log.", newScan:"New Scan",
-       sevLow:"Low risk", sevMedium:"Moderate risk", sevHigh:"High risk" },
+       sevLow:"Low risk", sevMedium:"Moderate risk", sevHigh:"High risk", analysisComplete:"Analysis Complete", detectedDisease:"Detected Disease", detectedOn:"Detected on", whyAI:"Why AI thinks so", symptomMap:"Visual symptom map", low:"Low", medium:"Moderate", high:"High", mapNote:"Highlights visual regions with stronger leaf color/texture variation. This is an explainability aid, not a true Grad-CAM map.", verify:"AI result — verify with a local agriculture expert / KVK before treatment.", plantCheck:"Plant/leaf check", notPlant:"This photo does not look like a clear plant leaf. Please move closer to a leaf and retake the photo." },
   hi:{ tagline:"एआई फसल स्वास्थ्य स्कैनर", startCam:"कैमरा शुरू करें", stopCam:"रोकें", capture:"पत्ती कैप्चर करें",
        hint:"निदान शुरू करने के लिए प्रभावित पत्ती पर कैमरा रखें, या फोटो अपलोड करें।",
        analyzing:"पत्ती की बनावट का विश्लेषण हो रहा है…", ticket:"निदान रिपोर्ट", confidence:"एआई विश्वास स्तर",
        symptoms:"देखे गए लक्षण", organic:"जैविक उपाय", chemical:"रासायनिक विकल्प",
        saveLog:"लॉग में सहेजें", askExpert:"कृषि विशेषज्ञ से पूछें", historyHint:"आपके सभी स्कैन यहाँ, इसी डिवाइस पर सहेजे जाते हैं।",
        emptyHistory:"अभी तक कोई स्कैन नहीं। अपना फील्ड लॉग शुरू करने के लिए एक पत्ती जांचें।", newScan:"नया स्कैन",
-       sevLow:"कम जोखिम", sevMedium:"मध्यम जोखिम", sevHigh:"उच्च जोखिम" }
+       sevLow:"कम जोखिम", sevMedium:"मध्यम जोखिम", sevHigh:"उच्च जोखिम", analysisComplete:"विश्लेषण पूरा", detectedDisease:"पहचाना गया रोग", detectedOn:"फसल", whyAI:"एआई ऐसा क्यों कहता है", symptomMap:"दृश्य लक्षण मानचित्र", low:"कम", medium:"मध्यम", high:"उच्च", mapNote:"यह पत्ती के रंग/बनावट में अधिक बदलाव वाले क्षेत्रों को दिखाता है। यह वास्तविक Grad-CAM मानचित्र नहीं है।", verify:"एआई परिणाम — उपचार से पहले स्थानीय कृषि विशेषज्ञ / KVK से पुष्टि करें।", plantCheck:"पौधा/पत्ती जांच", notPlant:"यह फोटो स्पष्ट पौधे की पत्ती जैसी नहीं लगती। पत्ती के पास जाकर दोबारा फोटो लें।" }
 };
 
 let lang = "en";
@@ -408,6 +462,7 @@ let stream = null;
 let lastCaptureDataUrl = null;
 /* No API key needed — runs fully in browser with TensorFlow.js */
 let tfModel = null;
+let lastResult = null;
 
 /* PlantVillage 38-class labels mapped to our DB structure */
 const TF_LABELS = [
@@ -542,6 +597,7 @@ const analyseBtn     = document.getElementById("analyseBtn");
 const analyseBtnText = document.getElementById("analyseBtnText");
 const reportCard     = document.getElementById("reportCard");
 const errorBox       = document.getElementById("errorBox");
+const aiStatus        = document.getElementById("aiStatus");
 
 
 /* --- Crop chips --- */
@@ -702,17 +758,19 @@ window.addEventListener("beforeunload", () => {
 updateCameraUI();
 
 /* ================================================
-   TENSORFLOW.JS — PlantVillage model
-   Uses a real TensorFlow.js MobileNetV2 model.
-   No API key is required.
+   TEACHABLE MACHINE — PlantVillage model
+   Trained on 54,000+ real plant disease images
+   38 classes, no API key needed
    ================================================ */
 
-const PLANT_MODEL_URL =
-  "https://cdn.jsdelivr.net/gh/zhangys11/tfjs-app@main/tfjsa/static/Mobilenet_Leaf/model.json";
+// Teachable Machine PlantVillage model URL (publicly hosted)
+const TM_MODEL_URL = "https://teachablemachine.withgoogle.com/models/ovyEsMpz5/";
 
+// Confidence threshold — below this we reject as "not a plant / unclear"
 const CONFIDENCE_THRESHOLD = 0.55;
 
-/* PlantVillage's fixed 38-class order */
+// These are the exact 38 class names the TM PlantVillage model outputs
+// Mapped to index positions matching TF_LABELS array order
 const TM_CLASS_NAMES = [
   "Apple___Apple_scab","Apple___Black_rot","Apple___Cedar_apple_rust","Apple___healthy",
   "Blueberry___healthy","Cherry_(including_sour)___Powdery_mildew","Cherry_(including_sour)___healthy",
@@ -730,52 +788,139 @@ const TM_CLASS_NAMES = [
   "Tomato___Tomato_Yellow_Leaf_Curl_Virus","Tomato___Tomato_mosaic_virus","Tomato___healthy"
 ];
 
-async function loadPlantModel() {
-  if (tfModel) return tfModel;
-
-  document.getElementById("scanStatus").textContent =
-    lang === "hi" ? "प्लांट एआई मॉडल लोड हो रहा है…" : "LOADING PLANT AI MODEL…";
-
-  /* This is a normal TensorFlow.js model, not a Teachable Machine model. */
-  tfModel = await tf.loadLayersModel(PLANT_MODEL_URL);
-
-  return tfModel;
+function setAIStatus(type, text) {
+  aiStatus.className = "ai-status " + (type || "");
+  aiStatus.textContent = text;
 }
 
-function getPredictionTensor(imageElement) {
-  return tf.tidy(() => {
-    return tf.browser
-      .fromPixels(imageElement)
-      .resizeBilinear([224, 224])
-      .toFloat()
-      .div(255)
-      .expandDims(0);
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>'"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[ch]));
+}
+
+/*
+ * Lightweight pre-check for "is this actually a plant/leaf photo?".
+ * The PlantVillage model is a disease classifier, not an object detector,
+ * so it can confidently classify non-leaf images. This gate prevents that.
+ */
+function inspectForPlantLeaf(dataUrl) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      const size = 96;
+      c.width = size; c.height = size;
+      const x = c.getContext("2d", {willReadFrequently:true});
+      x.drawImage(img, 0, 0, size, size);
+      const px = x.getImageData(0, 0, size, size).data;
+      let leafLike = 0, centerLeaf = 0, total = size * size;
+      for (let y=0; y<size; y++) {
+        for (let xx=0; xx<size; xx++) {
+          const i=(y*size+xx)*4;
+          const r=px[i], g=px[i+1], b=px[i+2];
+          const max=Math.max(r,g,b), min=Math.min(r,g,b);
+          const green = g > r*1.05 && g > b*1.03 && g > 42;
+          const earthy = g >= r*0.72 && g >= b*0.68 && (max-min) > 22 && g > 45;
+          const candidate = green || earthy;
+          if (candidate) {
+            leafLike++;
+            if (xx>20 && xx<76 && y>20 && y<76) centerLeaf++;
+          }
+        }
+      }
+      const ratio = leafLike / total;
+      const centerRatio = centerLeaf / (56*56);
+      const score = Math.min(1, ratio*0.65 + centerRatio*0.35);
+      resolve({ok: score >= 0.18, score, ratio, centerRatio});
+    };
+    img.onerror = () => resolve({ok:false, score:0, ratio:0, centerRatio:0});
+    img.src = dataUrl;
   });
 }
 
-function getTopPrediction(outputTensor) {
-  const values = Array.from(outputTensor.dataSync());
-
-  let bestIndex = 0;
-  let bestValue = values[0] ?? 0;
-
-  for (let i = 1; i < values.length; i++) {
-    if (values[i] > bestValue) {
-      bestValue = values[i];
-      bestIndex = i;
-    }
-  }
-
-  return {
-    index: bestIndex,
-    confidence: bestValue,
-    className: TM_CLASS_NAMES[bestIndex] || ""
-  };
+/* Creates a visual symptom map for the result screen.
+ * It is deliberately labelled as a visual heuristic, not Grad-CAM.
+ */
+function createSymptomMap(dataUrl) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const w = 360, h = Math.max(270, Math.round(360 * img.naturalHeight / img.naturalWidth));
+      const c = document.createElement("canvas"); c.width=w; c.height=h;
+      const x = c.getContext("2d", {willReadFrequently:true});
+      x.drawImage(img,0,0,w,h);
+      const image = x.getImageData(0,0,w,h), p=image.data;
+      const heat=[];
+      for(let yy=0; yy<h; yy+=3){
+        for(let xx=0; xx<w; xx+=3){
+          const i=(yy*w+xx)*4, r=p[i],g=p[i+1],b=p[i+2];
+          const dark = 255-(0.299*r+0.587*g+0.114*b);
+          const yellow = Math.max(0, (r+g)/2-b);
+          const brown = Math.max(0, r*0.7+g*0.35-b*0.55);
+          const score = Math.max(0, Math.min(1, (dark-70)/150*0.45 + (yellow-25)/150*0.25 + (brown-25)/130*0.30));
+          if(score>0.30) heat.push({x:xx,y:yy,s:score});
+        }
+      }
+      x.fillStyle='rgba(255,180,0,0.04)'; x.fillRect(0,0,w,h);
+      for(const q of heat){
+        const rad=8+q.s*18;
+        const g=x.createRadialGradient(q.x,q.y,0,q.x,q.y,rad);
+        g.addColorStop(0,`rgba(220,55,25,${0.42*q.s})`);
+        g.addColorStop(0.45,`rgba(245,190,35,${0.24*q.s})`);
+        g.addColorStop(1,'rgba(245,190,35,0)');
+        x.fillStyle=g; x.beginPath(); x.arc(q.x,q.y,rad,0,Math.PI*2); x.fill();
+      }
+      resolve(c.toDataURL('image/jpeg',0.82));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
 }
+
+async function loadAIModel() {
+  if (tfModel) return tfModel;
+  setAIStatus("loading", "⏳ " + STR[lang].modelLoading);
+  const modelURL = TM_MODEL_URL + "model.json";
+  const metadataURL = TM_MODEL_URL + "metadata.json";
+  tfModel = await tmImage.load(modelURL, metadataURL);
+  setAIStatus("ready", "✓ " + STR[lang].modelReady);
+  return tfModel;
+}
+
+function checkImageQuality(dataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      if (img.naturalWidth < 224 || img.naturalHeight < 224) {
+        resolve(false);
+        return;
+      }
+      const probe = document.createElement("canvas");
+      probe.width = 64; probe.height = 64;
+      const ctx = probe.getContext("2d", {willReadFrequently:true});
+      ctx.drawImage(img, 0, 0, 64, 64);
+      const px = ctx.getImageData(0, 0, 64, 64).data;
+      let sum = 0;
+      for (let i = 0; i < px.length; i += 4) {
+        sum += (0.299 * px[i]) + (0.587 * px[i+1]) + (0.114 * px[i+2]);
+      }
+      const avg = sum / (px.length / 4);
+      resolve(avg >= 25 && avg <= 245);
+    };
+    img.onerror = () => resolve(false);
+    img.src = dataUrl;
+  });
+}
+
+// Preload the AI model in the background so the first live demo scan is faster.
+loadAIModel().catch(err => {
+  console.warn("AI model preload failed:", err);
+  setAIStatus("", "⚠️ " + STR[lang].modelFailed);
+});
 
 analyseBtn.addEventListener("click", async () => {
   if (!lastCaptureDataUrl) return;
 
+  // Loading state
   analyseBtn.disabled = true;
   analyseBtn.classList.add("loading");
   analyseBtnText.textContent = STR[lang].analyzing;
@@ -784,171 +929,181 @@ analyseBtn.addEventListener("click", async () => {
   reportCard.classList.remove("show");
   errorBox.classList.remove("show");
 
-  let inputTensor = null;
-  let outputTensor = null;
-
   try {
-    const model = await loadPlantModel();
-    const imgEl = document.getElementById("capturedImg");
-
-    if (!imgEl.complete || !imgEl.naturalWidth) {
-      await new Promise((resolve, reject) => {
-        imgEl.onload = resolve;
-        imgEl.onerror = () =>
-          reject(new Error("The captured image could not be loaded."));
-      });
+    // Basic image-quality gate before sending the image to the model
+    if (!(await checkImageQuality(lastCaptureDataUrl))) {
+      showError("📷 " + STR[lang].imageQuality);
+      return;
     }
 
-    inputTensor = getPredictionTensor(imgEl);
+    // Plant/leaf pre-check BEFORE disease classification.
+    document.getElementById("scanStatus").textContent = STR[lang].plantCheck.toUpperCase();
+    const plantCheck = await inspectForPlantLeaf(lastCaptureDataUrl);
+    if (!plantCheck.ok) {
+      showError("🌿 " + STR[lang].notPlant);
+      return;
+    }
 
-    const rawOutput = model.predict(inputTensor);
-    outputTensor = Array.isArray(rawOutput) ? rawOutput[0] : rawOutput;
+    // Load the model (or reuse the preloaded model)
+    document.getElementById("scanStatus").textContent = STR[lang].modelLoading.toUpperCase();
+    await loadAIModel();
 
-    const prediction = getTopPrediction(outputTensor);
-    const topConf = prediction.confidence;
-    const topClass = prediction.className;
+    // Run prediction on the captured image element
+    const imgEl = document.getElementById("capturedImg");
+    const predictions = await tfModel.predict(imgEl);
 
-    if (
-      !topClass ||
-      topConf < CONFIDENCE_THRESHOLD ||
-      prediction.index >= TF_LABELS.length
-    ) {
+    // Find the top prediction
+    const top = predictions.reduce((a, b) => a.probability > b.probability ? a : b);
+    const topConf = top.probability;
+    const topClass = top.className;
+
+    // --- NON-PLANT / LOW CONFIDENCE CHECK ---
+    if (topConf < CONFIDENCE_THRESHOLD) {
       renderReport({
         disease_name: lang === "hi" ? "पहचान नहीं हो सकी" : "Could Not Identify",
         severity: "low",
         confidence: Math.round(topConf * 100),
         symptoms: lang === "hi"
-          ? "छवि अस्पष्ट है या मॉडल पर्याप्त विश्वास के साथ पहचान नहीं कर सका। कृपया पत्ती को साफ रोशनी में फिर से कैप्चर करें।"
-          : "The image is unclear or the model could not identify the leaf with enough confidence. Please retake the photo in good light.",
-        organic_remedy: lang === "hi"
-          ? "पत्ती की साफ, नज़दीकी फोटो लें और पुनः प्रयास करें।"
-          : "Take a clear, close-up photo of the leaf and try again.",
+          ? "फोटो में पत्ती जैसी बनावट मिली, लेकिन एआई का विश्वास कम है।"
+          : "A leaf-like image was detected, but AI confidence is too low for a reliable diagnosis.",
+        organic_remedy: lang === "hi" ? "पत्ती का क्लोज-अप फोटो लें और अच्छी रोशनी में पुनः प्रयास करें।" : "Take a close-up photo of the leaf in good lighting and try again.",
         chemical_remedy: lang === "hi" ? "लागू नहीं।" : "Not applicable.",
         additional_tip: lang === "hi"
-          ? "सुनिश्चित करें कि पत्ती फ्रेम का अधिकांश भाग भरती हो और पृष्ठभूमि कम हो।"
-          : "Make sure the leaf fills most of the frame and there is minimal background."
+          ? "पत्ती को फ्रेम का अधिकांश भाग भरने दें और धुंधली फोटो से बचें।"
+          : "Let the leaf fill most of the frame and avoid blurry images.",
+        image: lastCaptureDataUrl,
+        symptomMap: await createSymptomMap(lastCaptureDataUrl)
       });
-
       return;
     }
 
+    // --- MAP CLASS NAME TO TF_LABELS ---
     const labelIndex = TM_CLASS_NAMES.indexOf(topClass);
-    const picked = labelIndex !== -1 ? TF_LABELS[labelIndex] : null;
+    let picked;
 
-    if (!picked) {
-      throw new Error("The model returned an unsupported PlantVillage class.");
+    if (labelIndex !== -1 && TF_LABELS[labelIndex]) {
+      picked = TF_LABELS[labelIndex];
+    } else {
+      // Never guess a disease if the model label is not in our verified mapping.
+      throw new Error("Model class is not mapped in the KrishiRakshak disease database.");
     }
 
+    // --- CROSS-CHECK: warn if detected crop doesn't match selected crop ---
     const detectedCrop = picked.crop.toLowerCase();
     const selectedLower = selectedCrop.toLowerCase();
-
-    const cropMismatch =
-      detectedCrop !== selectedLower &&
-      !["blueberry","raspberry","soybean","squash","strawberry","orange"]
-        .includes(detectedCrop);
+    const cropMismatch = detectedCrop !== selectedLower &&
+      !["blueberry","raspberry","soybean","squash","strawberry","orange"].includes(detectedCrop);
 
     const additionalTip = cropMismatch
-      ? (
-          lang === "hi"
-            ? `⚠️ यह ${picked.crop} की पत्ती लगती है, लेकिन आपने ${selectedCrop} चुना है। फसल बदलकर पुनः स्कैन करें।`
-            : `⚠️ This looks like a ${picked.crop} leaf, but you selected ${selectedCrop}. Try switching the crop and rescanning.`
-        )
-      : (
-          lang === "hi"
-            ? "नजदीकी कृषि विज्ञान केंद्र (KVK) से पुष्टि अवश्य करें।"
-            : "Confirm diagnosis with your nearest Krishi Vigyan Kendra (KVK)."
-        );
+      ? (lang === "hi"
+          ? `⚠️ यह ${picked.crop} की पत्ती लगती है, लेकिन आपने ${selectedCrop} चुना है। फसल बदलकर पुनः स्कैन करें।`
+          : `⚠️ This looks like a ${picked.crop} leaf, but you selected ${selectedCrop}. Try switching the crop and rescanning.`)
+      : (lang === "hi"
+          ? "नजदीकी कृषि विज्ञान केंद्र (KVK) से पुष्टि अवश्य करें।"
+          : "Confirm diagnosis with your nearest Krishi Vigyan Kendra (KVK).");
 
     const result = {
-      disease_name: picked.name[lang],
-      severity: picked.severity,
-      confidence: Math.round(topConf * 100),
-      symptoms: lang === "hi"
+      crop:           picked.crop,
+      selected_crop:  selectedCrop,
+      disease_name:   picked.name[lang],
+      severity:       picked.severity,
+      confidence:     Math.round(topConf * 100),
+      symptoms:       lang === "hi"
         ? `${picked.crop} की पत्तियों पर ${picked.name.hi} के लक्षण पाए गए।`
         : `Symptoms of ${picked.name.en} detected on ${picked.crop} leaves.`,
-      organic_remedy: picked.organic[lang],
+      organic_remedy:  picked.organic[lang],
       chemical_remedy: picked.chemical[lang],
-      additional_tip: additionalTip
+      additional_tip:  additionalTip,
+      image: lastCaptureDataUrl,
+      symptomMap: await createSymptomMap(lastCaptureDataUrl),
+      plantScore: Math.round(plantCheck.score * 100)
     };
 
     renderReport(result);
     saveToHistory(result);
 
-  } catch (err) {
-    console.error("Plant AI error:", err);
-
+  } catch(err) {
+    console.error(err);
     showError(
       lang === "hi"
-        ? "एआई विश्लेषण विफल: " + err.message +
-          " — मॉडल पहली बार लोड करने के लिए इंटरनेट कनेक्शन आवश्यक है।"
-        : "AI analysis failed: " + err.message +
-          " — Internet is required the first time the model loads."
+        ? "विश्लेषण विफल: " + err.message + " — पहली बार इंटरनेट जरूरी है।"
+        : "Analysis failed: " + err.message + " — Internet required for first load."
     );
-
   } finally {
-    if (inputTensor) inputTensor.dispose();
-
-    if (outputTensor && typeof outputTensor.dispose === "function") {
-      outputTensor.dispose();
-    }
-
     analyseBtn.disabled = false;
     analyseBtn.classList.remove("loading");
-    analyseBtnText.textContent =
-      "🔬 " + (lang === "hi" ? "AI से विश्लेषण करें" : "Analyse with AI");
-
+    analyseBtnText.textContent = "🔬 " + (lang === "hi" ? "AI से विश्लेषण करें" : "Analyse with AI");
     viewfinder.classList.remove("scanning");
-    document.getElementById("scanStatus").textContent =
-      STR[lang].analyzing;
+    document.getElementById("scanStatus").textContent = "ANALYZING LEAF TEXTURE…";
   }
 });
 
 /* ---------------- RENDER REPORT ---------------- */
 function renderReport(r) {
+  lastResult = r;
   const sevClass = { low:"sev-low", medium:"sev-medium", high:"sev-high" }[r.severity] || "sev-low";
   const sevLabel = { low:STR[lang].sevLow, medium:STR[lang].sevMedium, high:STR[lang].sevHigh }[r.severity] || "";
+  const sevAngle = {low:-55, medium:0, high:55}[r.severity] ?? -55;
+  const severityText = {low:STR[lang].low, medium:STR[lang].medium, high:STR[lang].high}[r.severity] || STR[lang].low;
+  const confidence = Math.max(0, Math.min(100, Number(r.confidence) || 0));
+  const image = r.image || lastCaptureDataUrl || "";
+  const map = r.symptomMap || image;
 
   reportCard.innerHTML = `
-    <div class="report-head">
-      <div>
-        <div class="ticket-label">${STR[lang].ticket} · ${selectedCrop}</div>
-        <h2>${r.disease_name}</h2>
+    <div class="result-hero">
+      <div class="result-complete"><span class="check">✓</span>${STR[lang].analysisComplete}</div>
+      <div class="result-main">
+        <img class="result-photo" src="${image}" alt="Scanned plant leaf">
+        <div>
+          <div class="result-label">${STR[lang].detectedDisease}</div>
+          <div class="result-disease">${escapeHTML(r.disease_name)}</div>
+          <div class="result-crop">🌿 ${STR[lang].detectedOn}: ${escapeHTML(r.crop || selectedCrop)}</div>
+        </div>
       </div>
-      <span class="severity-pill ${sevClass}">${sevLabel}</span>
+      <div class="result-confidence">
+        <div class="result-confidence-top"><span>${STR[lang].confidence}</span><strong>${confidence}%</strong></div>
+        <div class="result-confidence-track"><div class="result-confidence-fill" style="width:${confidence}%"></div></div>
+      </div>
+      <div class="verify-note">🛡️ ${STR[lang].verify}</div>
     </div>
-    <div class="confidence-bar-wrap">
-      <div class="confidence-label">
-        <span>${STR[lang].confidence}</span>
-        <span>${r.confidence}%</span>
-      </div>
-      <div class="confidence-track">
-        <div class="confidence-fill" style="width:${r.confidence}%"></div>
-      </div>
-    </div>
+
     <div class="report-section">
-      <h4>${STR[lang].symptoms}</h4>
-      <p>${r.symptoms}</p>
+      <h4>${STR[lang].whyAI}</h4>
+      <div class="explain-grid">
+        <div class="explain-card">
+          <h4>${STR[lang].symptomMap}</h4>
+          <div class="symptom-map"><img src="${map}" alt="Visual symptom map"></div>
+          <div class="map-legend"><span>Low</span><div class="map-gradient"></div><span>High</span></div>
+          <div class="map-note">${STR[lang].mapNote}</div>
+        </div>
+        <div class="explain-card severity-box">
+          <h4>Disease severity</h4>
+          <div class="severity-gauge">
+            <div class="severity-needle" style="transform:rotate(${sevAngle}deg)"></div>
+            <div class="severity-dot"></div>
+          </div>
+          <div class="severity-name">${severityText}</div>
+          <div class="severity-desc">${escapeHTML(r.severity === "high" ? "Higher-risk result. Act promptly and confirm locally." : r.severity === "medium" ? "Moderate-risk result. Monitor closely and confirm locally." : "Low-risk result. Continue monitoring.")}</div>
+        </div>
+      </div>
+      <div class="why-box">💡 <strong>${STR[lang].whyAI}:</strong> ${escapeHTML(r.symptoms)}</div>
     </div>
+
+    <div class="result-section-title">${STR[lang].symptoms}</div>
+    <ul class="result-bullets"><li>${escapeHTML(r.symptoms)}</li></ul>
+
     <div class="report-section">
       <div class="treatment-grid">
-        <div class="treatment-box">
-          <div class="t-title">🌿 ${STR[lang].organic}</div>
-          <p>${r.organic_remedy}</p>
-        </div>
-        <div class="treatment-box">
-          <div class="t-title">⚗️ ${STR[lang].chemical}</div>
-          <p>${r.chemical_remedy}</p>
-        </div>
+        <div class="treatment-box"><div class="t-title">🌿 ${STR[lang].organic}</div><p>${escapeHTML(r.organic_remedy)}</p></div>
+        <div class="treatment-box"><div class="t-title">⚗️ ${STR[lang].chemical}</div><p>${escapeHTML(r.chemical_remedy)}</p></div>
       </div>
     </div>
-    ${r.additional_tip ? `
-    <div class="report-section" style="padding-top:4px">
-      <h4>💡 Field Tip</h4>
-      <p>${r.additional_tip}</p>
-    </div>` : ""}
-    <div class="cta-row">
-      <button class="cta-outline" onclick="resetScan()">📷 ${STR[lang].newScan}</button>
-      <button class="cta-fill" onclick="shareReport()">📤 ${STR[lang].saveLog}</button>
+
+    ${r.additional_tip ? `<div class="report-section" style="padding-top:4px"><h4>💡 Field Tip</h4><p>${escapeHTML(r.additional_tip)}</p></div>` : ""}
+    <div class="result-disclaimer">🛡️ ${STR[lang].verify}</div>
+    <div class="result-actions">
+      <button class="secondary" onclick="resetScan()">📷 ${STR[lang].newScan}</button>
+      <button class="primary" onclick="shareReport()">📤 Share Report</button>
     </div>
   `;
 
@@ -963,6 +1118,7 @@ function showError(msg) {
 
 function resetScan() {
   lastCaptureDataUrl = null;
+  lastResult = null;
   capturedImg.classList.add("hidden");
   vfPlaceholder.classList.remove("hidden");
   reportCard.classList.remove("show");
@@ -973,9 +1129,10 @@ function resetScan() {
 }
 
 function shareReport() {
-  const h2 = reportCard.querySelector("h2");
-  const diseaseName = h2 ? h2.textContent : "Unknown";
-  const text = `KrishiRakshak Scan\nCrop: ${selectedCrop}\nDiagnosis: ${diseaseName}\nDate: ${new Date().toLocaleDateString("en-IN")}`;
+  const diseaseName = lastResult?.disease_name || "Unknown";
+  const cropName = lastResult?.crop || selectedCrop;
+  const confidence = lastResult?.confidence ?? "—";
+  const text = `KrishiRakshak AI Scan\nCrop: ${cropName}\nDiagnosis: ${diseaseName}\nConfidence: ${confidence}%\nSeverity: ${lastResult?.severity || "—"}\nDate: ${new Date().toLocaleDateString("en-IN")}`;
   if (navigator.share) {
     navigator.share({ title:"KrishiRakshak Report", text });
   } else {
@@ -988,7 +1145,7 @@ function shareReport() {
 /* ---------------- HISTORY ---------------- */
 function saveToHistory(r) {
   scanHistory.unshift({
-    crop: selectedCrop,
+    crop: r.crop || selectedCrop,
     disease: r.disease_name,
     severity: r.severity,
     date: new Date().toLocaleDateString("en-IN")
