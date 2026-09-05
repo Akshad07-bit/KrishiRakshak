@@ -3,35 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroScan AI — Two-Stage Leaf Verification & Disease Detector</title>
+    <title>AgroScan AI — 2-Stage Leaf Disease & Pest Detector</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
     <!-- Header Navigation -->
     <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <div class="bg-white/10 p-2 rounded-xl backdrop-blur">
                     <i data-lucide="sprout" class="w-6 h-6 text-emerald-300"></i>
                 </div>
                 <div>
                     <h1 class="text-lg font-bold leading-none">AgroScan AI</h1>
-                    <span class="text-[11px] text-emerald-200">2-Stage Leaf Verification & Disease Detector</span>
+                    <span class="text-[11px] text-emerald-200" data-i18n="appSubtitle">Crop Health & Pest Diagnostic Web App</span>
                 </div>
             </div>
-            <div class="flex items-center space-x-2">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-900/80 border border-emerald-600 text-emerald-100">
+
+            <!-- Language Switcher & Badge -->
+            <div class="flex items-center space-x-3">
+                <!-- Lang Toggle Buttons -->
+                <div class="inline-flex rounded-lg bg-emerald-950/60 p-0.5 border border-emerald-600/60 text-xs font-semibold">
+                    <button onclick="setLanguage('en')" id="langBtnEn" class="px-2.5 py-1 rounded-md transition bg-white text-emerald-900 shadow">
+                        English
+                    </button>
+                    <button onclick="setLanguage('hi')" id="langBtnHi" class="px-2.5 py-1 rounded-md transition text-emerald-100 hover:text-white">
+                        हिंदी
+                    </button>
+                </div>
+
+                <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-900/80 border border-emerald-600 text-emerald-100">
                     <span class="w-2 h-2 mr-2 bg-emerald-400 rounded-full animate-ping"></span>
-                    Leaf Gatekeeper Enabled
+                    <span data-i18n="guardActive">Gatekeeper Active</span>
                 </span>
             </div>
         </div>
@@ -45,31 +57,34 @@
             <div class="lg:col-span-5 space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <h2 class="text-base font-bold text-slate-800 mb-1 flex items-center gap-2">
-                        <i data-lucide="scan-line" class="w-5 h-5 text-emerald-600"></i> Scan Plant Foliage
+                        <i data-lucide="scan-line" class="w-5 h-5 text-emerald-600"></i>
+                        <span data-i18n="scanFoliageTitle">Scan Plant Foliage</span>
                     </h2>
-                    <p class="text-xs text-slate-500 mb-4">Upload or capture an image. The scanner will run <strong>Step 1</strong> to verify whether a real leaf is present before analyzing diseases.</p>
+                    <p class="text-xs text-slate-500 mb-4" data-i18n="scanFoliageDesc">
+                        Upload or capture a leaf photo. Step 1 verifies whether a real plant leaf is present before analyzing diseases.
+                    </p>
 
                     <!-- Input Mode Tabs -->
                     <div class="flex border-b border-slate-200 mb-4 text-xs font-semibold">
                         <button id="tabUploadBtn" onclick="switchTab('upload')" class="py-2 px-4 border-b-2 border-emerald-600 text-emerald-700 flex items-center gap-2">
-                            <i data-lucide="upload" class="w-4 h-4"></i> Upload File
+                            <i data-lucide="upload" class="w-4 h-4"></i> <span data-i18n="tabUpload">Upload File</span>
                         </button>
                         <button id="tabCameraBtn" onclick="switchTab('camera')" class="py-2 px-4 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2">
-                            <i data-lucide="camera" class="w-4 h-4"></i> Live Camera
+                            <i data-lucide="camera" class="w-4 h-4"></i> <span data-i18n="tabCamera">Live Camera</span>
                         </button>
                     </div>
 
-                    <!-- File Upload Tab -->
+                    <!-- File Upload View -->
                     <div id="uploadView" class="space-y-4">
                         <label for="fileInput" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center bg-slate-50 min-h-[160px]">
                             <i data-lucide="image-plus" class="w-9 h-9 text-slate-400 mb-2"></i>
-                            <span class="text-xs font-semibold text-emerald-700">Click to choose image</span>
+                            <span class="text-xs font-semibold text-emerald-700" data-i18n="chooseImageText">Click to choose image</span>
                             <span class="text-[11px] text-slate-400 mt-0.5">JPG, PNG, WEBP</span>
                             <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFile(event)">
                         </label>
                     </div>
 
-                    <!-- Camera Tab -->
+                    <!-- Camera View -->
                     <div id="cameraView" class="hidden space-y-4 text-center">
                         <div class="relative bg-black rounded-xl overflow-hidden aspect-video flex items-center justify-center">
                             <video id="webcam" autoplay playsinline class="w-full h-full object-cover"></video>
@@ -77,45 +92,42 @@
                         </div>
                         <div class="flex justify-center gap-2">
                             <button onclick="startCamera()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium flex items-center gap-1.5">
-                                <i data-lucide="video" class="w-3.5 h-3.5"></i> Open Cam
+                                <i data-lucide="video" class="w-3.5 h-3.5"></i> <span data-i18n="openCamBtn">Open Cam</span>
                             </button>
                             <button onclick="takeSnapshot()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow">
-                                <i data-lucide="aperture" class="w-3.5 h-3.5"></i> Snap Photo
+                                <i data-lucide="aperture" class="w-3.5 h-3.5"></i> <span data-i18n="snapPhotoBtn">Snap Photo</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Preview Thumbnail & Two Action Buttons -->
+                    <!-- Preview Thumbnail & Pipeline Trigger -->
                     <div id="previewContainer" class="hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
-                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Loaded Sample</p>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="loadedSample">Loaded Sample</p>
                         <div class="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 max-h-44 flex items-center justify-center">
                             <img id="previewImg" src="#" alt="Leaf Preview" class="max-h-44 object-contain">
                         </div>
                         
-                        <!-- Actions -->
-                        <div class="grid grid-cols-1 gap-2 pt-1">
-                            <button onclick="runPipeline()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition shadow flex items-center justify-center gap-2">
-                                <i data-lucide="play-circle" class="w-4 h-4"></i> Run 2-Stage Verification & Diagnosis
-                            </button>
-                        </div>
+                        <button onclick="runPipeline()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition shadow flex items-center justify-center gap-2">
+                            <i data-lucide="play-circle" class="w-4 h-4"></i>
+                            <span data-i18n="runPipelineBtn">Run 2-Stage Verification & Diagnosis</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- History -->
+                <!-- Scan History -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-xs font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wider">
-                            <i data-lucide="history" class="w-4 h-4 text-slate-400"></i> Scan History
+                            <i data-lucide="history" class="w-4 h-4 text-slate-400"></i>
+                            <span data-i18n="historyTitle">Scan History</span>
                         </h3>
-                        <button onclick="clearHistory()" class="text-[11px] text-slate-400 hover:text-rose-600">Clear</button>
+                        <button onclick="clearHistory()" class="text-[11px] text-slate-400 hover:text-rose-600" data-i18n="clearBtn">Clear</button>
                     </div>
-                    <div id="historyList" class="divide-y divide-slate-100 max-h-40 overflow-y-auto text-xs">
-                        <!-- Populated by JS -->
-                    </div>
+                    <div id="historyList" class="divide-y divide-slate-100 max-h-40 overflow-y-auto text-xs"></div>
                 </div>
             </div>
 
-            <!-- Right Panel: Diagnostic Pipeline Output -->
+            <!-- Right Panel: Output Cards -->
             <div class="lg:col-span-7 space-y-6">
 
                 <!-- 1. Idle Placeholder -->
@@ -123,20 +135,20 @@
                     <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-3">
                         <i data-lucide="shield-check" class="w-8 h-8"></i>
                     </div>
-                    <h3 class="text-sm font-semibold text-slate-700">Awaiting Sample</h3>
-                    <p class="text-xs text-slate-400 max-w-sm mt-1">
-                        Upload or capture a photo on the left. The app will first run a <strong>Step 1 Leaf Test</strong> to confirm biological plant foliage before attempting any diagnosis.
+                    <h3 class="text-sm font-semibold text-slate-700" data-i18n="awaitingTitle">Awaiting Foliage Sample</h3>
+                    <p class="text-xs text-slate-400 max-w-sm mt-1" data-i18n="awaitingDesc">
+                        Upload or capture a photo on the left. The app runs a Step 1 Leaf Test to confirm biological plant foliage before attempting any diagnosis.
                     </p>
                 </div>
 
-                <!-- 2. Step 1 Inspection In-Progress State -->
+                <!-- 2. Loading State -->
                 <div id="loadingState" class="hidden bg-white rounded-2xl p-12 text-center flex flex-col items-center justify-center min-h-[420px] shadow-sm border border-slate-200 space-y-3">
                     <div class="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
                     <p class="text-sm font-bold text-slate-800" id="loadingTitle">Running Step 1: Leaf Verification...</p>
-                    <p class="text-xs text-slate-400 max-w-xs" id="loadingSubtitle">Inspecting image for botanical chlorophyll spectrum, leaf margins, and venation.</p>
+                    <p class="text-xs text-slate-400 max-w-xs" id="loadingSubtitle">Checking image for botanical chlorophyll spectrum, leaf margins, and venation.</p>
                 </div>
 
-                <!-- 3. STEP 1 FAILED: REJECTION BANNER (NON-LIVING OBJECT) -->
+                <!-- 3. STEP 1 FAILED: REJECTION BANNER -->
                 <div id="rejectionCard" class="hidden bg-white rounded-2xl shadow-sm border-2 border-rose-400 p-6 space-y-5">
                     <div class="flex items-start gap-4">
                         <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
@@ -144,40 +156,42 @@
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800">
+                                <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800" data-i18n="rejBadge">
                                     Step 1: Test Failed
                                 </span>
                                 <span class="text-xs font-bold text-rose-600" id="metricChlorophyllBadge">0.0% Foliage</span>
                             </div>
-                            <h3 class="text-lg font-bold text-slate-900 mt-1">NO LEAF DETECTED</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">This image was identified as a non-living object or non-plant background.</p>
+                            <h3 class="text-lg font-bold text-slate-900 mt-1" data-i18n="rejHeading">NO LEAF DETECTED</h3>
+                            <p class="text-xs text-slate-500 mt-0.5" data-i18n="rejSubtext">
+                                This image was identified as a non-living object or non-plant background.
+                            </p>
                         </div>
                     </div>
 
-                    <!-- Metric Breakdown for Hackathon Judges -->
+                    <!-- Metric Breakdown -->
                     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 text-xs">
                         <div class="font-bold text-slate-700 flex items-center justify-between border-b border-slate-200 pb-2">
-                            <span>Step 1 Leaf Verification Metrics</span>
-                            <span class="text-rose-600 font-semibold">Diagnosis Locked 🔒</span>
+                            <span data-i18n="metricTitle">Step 1 Verification Metrics</span>
+                            <span class="text-rose-600 font-semibold" data-i18n="lockedBadge">Diagnosis Locked 🔒</span>
                         </div>
                         <div class="flex justify-between items-center text-slate-600">
-                            <span>Plant Chlorophyll Content:</span>
+                            <span data-i18n="metricChlorophyll">Plant Chlorophyll Content:</span>
                             <span class="font-mono font-bold text-rose-600" id="chlorophyllVal">0.0% (Min: 18%)</span>
                         </div>
                         <div class="flex justify-between items-center text-slate-600">
-                            <span>Foliage Venation Pattern:</span>
+                            <span data-i18n="metricVenation">Foliage Venation Pattern:</span>
                             <span class="font-mono font-bold text-rose-600" id="venationVal">Not Found</span>
                         </div>
                     </div>
 
                     <div class="bg-rose-50 border border-rose-200 rounded-xl p-4 text-xs text-rose-900 space-y-1">
                         <p class="font-bold flex items-center gap-1.5">
-                            <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i> Why was this stopped?
+                            <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i> <span data-i18n="whyRejectedTitle">Why was this stopped?</span>
                         </p>
-                        <p class="text-rose-800 leading-relaxed">
-                            The agricultural disease scanner is strictly programmed <strong>never to classify non-living items</strong> (keyboards, phones, water bottles, faces, walls) as crop diseases.
+                        <p class="text-rose-800 leading-relaxed" data-i18n="whyRejectedDesc">
+                            The agricultural disease scanner is strictly programmed never to classify non-living items (keyboards, phones, water bottles, faces, walls) as crop diseases.
                         </p>
-                        <p class="text-slate-600 pt-1 font-medium">
+                        <p class="text-slate-600 pt-1 font-medium" data-i18n="howToPassTip">
                             🌱 <strong>How to pass:</strong> Point the camera at a real leaf or upload a picture of agricultural foliage.
                         </p>
                     </div>
@@ -190,9 +204,9 @@
                     <div class="bg-emerald-50 border border-emerald-200 text-emerald-900 px-3.5 py-2.5 rounded-xl flex items-center justify-between text-xs font-medium">
                         <div class="flex items-center gap-2">
                             <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
-                            <span><strong>Step 1 Passed:</strong> Real leaf confirmed (<span id="leafScoreText">74%</span> chlorophyll tissue).</span>
+                            <span><strong data-i18n="step1PassPrefix">Step 1 Passed:</strong> <span data-i18n="realLeafConfirmed">Real leaf confirmed</span> (<span id="leafScoreText">74%</span> <span data-i18n="chlorophyllTissue">chlorophyll tissue</span>).</span>
                         </div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider bg-emerald-200/70 text-emerald-800 px-2 py-0.5 rounded-full">Step 2 Active</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider bg-emerald-200/70 text-emerald-800 px-2 py-0.5 rounded-full" data-i18n="step2ActiveBadge">Step 2 Active</span>
                     </div>
 
                     <!-- Step 2 Disease Details -->
@@ -202,36 +216,39 @@
                                 Pathogen Detected
                             </span>
                             <h3 id="resDisease" class="text-2xl font-bold text-slate-900 mt-2">Tomato — Early Blight</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Diagnostic Confidence: <strong id="resConfidence" class="text-slate-800">94.8%</strong></p>
+                            <p class="text-xs text-slate-500 mt-0.5"><span data-i18n="diagConfLabel">Diagnostic Confidence:</span> <strong id="resConfidence" class="text-slate-800">94.8%</strong></p>
                         </div>
                         <img id="resThumb" src="#" alt="Leaf Result" class="w-20 h-20 rounded-xl object-cover border border-slate-200 shadow-sm">
                     </div>
 
                     <!-- Symptoms -->
                     <div>
-                        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Symptoms Identified</h4>
+                        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5" data-i18n="symptomsTitle">Symptoms Identified</h4>
                         <p id="resSymptoms" class="text-xs text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-200 leading-relaxed"></p>
                     </div>
 
                     <!-- 3-Tier Treatment Plan -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                        <!-- Organic -->
                         <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
                             <div class="flex items-center gap-1.5 mb-2 text-emerald-800 font-bold text-xs uppercase">
-                                <i data-lucide="leaf" class="w-4 h-4"></i> Organic Remedy
+                                <i data-lucide="leaf" class="w-4 h-4"></i> <span data-i18n="organicTitle">Organic Remedy</span>
                             </div>
                             <p id="resOrganic" class="text-xs text-emerald-950 leading-relaxed"></p>
                         </div>
 
+                        <!-- Chemical -->
                         <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
                             <div class="flex items-center gap-1.5 mb-2 text-amber-800 font-bold text-xs uppercase">
-                                <i data-lucide="flask-conical" class="w-4 h-4"></i> Chemical Cure
+                                <i data-lucide="flask-conical" class="w-4 h-4"></i> <span data-i18n="chemicalTitle">Chemical Cure</span>
                             </div>
                             <p id="resChemical" class="text-xs text-amber-950 leading-relaxed"></p>
                         </div>
 
+                        <!-- Prevention -->
                         <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl">
                             <div class="flex items-center gap-1.5 mb-2 text-blue-800 font-bold text-xs uppercase">
-                                <i data-lucide="shield-check" class="w-4 h-4"></i> Preventive Care
+                                <i data-lucide="shield-check" class="w-4 h-4"></i> <span data-i18n="preventionTitle">Preventive Care</span>
                             </div>
                             <p id="resPrevention" class="text-xs text-blue-950 leading-relaxed"></p>
                         </div>
@@ -243,59 +260,260 @@
     </main>
 
     <script>
-        lucide.createIcons();
+        // ===================================================================
+        // 1. BILINGUAL DICTIONARY (ENGLISH & HINDI)
+        // ===================================================================
+        let currentLang = localStorage.getItem('agro_lang') || 'en';
+        let currentScanResult = null;
+        let lastFoliageScore = 0;
 
-        let currentImageBase64 = null;
-        let videoStream = null;
+        const I18N = {
+            en: {
+                appSubtitle: "Crop Health & Pest Diagnostic Web App",
+                guardActive: "Gatekeeper Active",
+                scanFoliageTitle: "Scan Plant Foliage",
+                scanFoliageDesc: "Upload or capture a leaf photo. Step 1 verifies whether a real plant leaf is present before analyzing diseases.",
+                tabUpload: "Upload File",
+                tabCamera: "Live Camera",
+                chooseImageText: "Click to choose image",
+                openCamBtn: "Open Cam",
+                snapPhotoBtn: "Snap Photo",
+                loadedSample: "Loaded Sample",
+                runPipelineBtn: "Run 2-Stage Verification & Diagnosis",
+                historyTitle: "Scan History",
+                clearBtn: "Clear",
+                noHistory: "No past scans logged.",
+                awaitingTitle: "Awaiting Foliage Sample",
+                awaitingDesc: "Upload or capture a photo on the left. The app runs a Step 1 Leaf Test to confirm biological plant foliage before attempting any diagnosis.",
+                step1Title: "Step 1: Running Leaf Test...",
+                step1Sub: "Checking image for botanical chlorophyll spectrum, leaf margins, and venation.",
+                step2Title: "Step 2: Analyzing Pathology & Pests...",
+                step2Sub: "Leaf confirmed. Scanning for fungal lesions, blight, and spider mites.",
+                rejBadge: "Step 1: Test Failed",
+                rejHeading: "NO LEAF DETECTED",
+                rejSubtext: "This image was identified as a non-living object or non-plant background.",
+                metricTitle: "Step 1 Verification Metrics",
+                lockedBadge: "Diagnosis Locked 🔒",
+                metricChlorophyll: "Plant Chlorophyll Content:",
+                metricVenation: "Foliage Venation Pattern:",
+                whyRejectedTitle: "Why was this stopped?",
+                whyRejectedDesc: "The agricultural disease scanner is strictly programmed never to classify non-living items (keyboards, phones, water bottles, faces, walls) as crop diseases.",
+                howToPassTip: "🌱 <strong>How to pass:</strong> Point the camera at a real leaf or upload a picture of agricultural foliage.",
+                step1PassPrefix: "Step 1 Passed:",
+                realLeafConfirmed: "Real leaf confirmed",
+                chlorophyllTissue: "chlorophyll tissue",
+                step2ActiveBadge: "Step 2 Active",
+                diagConfLabel: "Diagnostic Confidence:",
+                symptomsTitle: "Symptoms Identified",
+                organicTitle: "Organic Remedy",
+                chemicalTitle: "Chemical Cure",
+                preventionTitle: "Preventive Care",
+                healthyBadge: "Healthy Foliage",
+                pathogenBadge: "Pathogen / Pest Detected",
+                venationFound: "Verified Organic Venation",
+                venationNotFound: "Not Found"
+            },
+            hi: {
+                appSubtitle: "फसल स्वास्थ्य एवं कीट निदान वेब ऐप",
+                guardActive: "सत्यापन प्रणाली सक्रिय",
+                scanFoliageTitle: "पौधे की पत्ती स्कैन करें",
+                scanFoliageDesc: "पत्ती का फोटो अपलोड करें या कैमरे से लें। चरण 1 जांचेगा कि क्या यह सचमुच एक पौधे की पत्ती है, उसके बाद ही रोग निदान होगा।",
+                tabUpload: "फ़ाइल अपलोड करें",
+                tabCamera: "लाइव कैमरा",
+                chooseImageText: "फोटो चुनने के लिए क्लिक करें",
+                openCamBtn: "कैमरा चालू करें",
+                snapPhotoBtn: "फोटो लें",
+                loadedSample: "चुनी गई पत्ती",
+                runPipelineBtn: "पत्ती सत्यापन और रोग निदान शुरू करें",
+                historyTitle: "स्कैन इतिहास",
+                clearBtn: "साफ़ करें",
+                noHistory: "कोई पिछला स्कैन दर्ज नहीं है।",
+                awaitingTitle: "पत्ती के नमूने की प्रतीक्षा है",
+                awaitingDesc: "बाएं पैनल से फोटो चुनें। किसी भी रोग का पता लगाने से पहले ऐप जांचेगा कि फोटो किसी वास्तविक पौधे की पत्ती की है या नहीं।",
+                step1Title: "चरण 1: पत्ती सत्यापन जांच जारी है...",
+                step1Sub: "पौधे के क्लोरोफिल, पत्तियों की नसों और बनावट की जांच हो रही है।",
+                step2Title: "चरण 2: रोग एवं कीट का विश्लेषण जारी है...",
+                step2Sub: "पत्ती की पुष्टि हुई। फफूंद, झुलसा रोग और कीट संक्रमण की जांच हो रही है।",
+                rejBadge: "चरण 1: परीक्षण विफल",
+                rejHeading: "कोई पत्ती नहीं मिली",
+                rejSubtext: "यह तस्वीर किसी निर्जीव वस्तु, कमरे या गैर-पौधे की पाई गई है।",
+                metricTitle: "चरण 1 सत्यापन रिपोर्ट",
+                lockedBadge: "निदान रुका हुआ है 🔒",
+                metricChlorophyll: "पौधे के क्लोरोफिल की मात्रा:",
+                metricVenation: "पत्ती की नसों की बनावट:",
+                whyRejectedTitle: "यह क्यों रोक दिया गया?",
+                whyRejectedDesc: "यह कृषि स्कैनर निर्जीव वस्तुओं (जैसे कीबोर्ड, मोबाइल, बोतल, चेहरे, फर्श) को कभी भी फसल का रोग नहीं बताता। केवल असली पत्तियों का ही निदान किया जाता है।",
+                howToPassTip: "🌱 <strong>सही जांच के लिए:</strong> कैमरे को किसी असली पौधे की पत्ती पर रखें या खेत की पत्ती का स्पष्ट फोटो अपलोड करें।",
+                step1PassPrefix: "चरण 1 सफल:",
+                realLeafConfirmed: "असली पत्ती की पुष्टि हुई",
+                chlorophyllTissue: "क्लोरोफिल ऊतक",
+                step2ActiveBadge: "चरण 2 सक्रिय",
+                diagConfLabel: "निदान सटीकता:",
+                symptomsTitle: "पहचाने गए रोग लक्षण",
+                organicTitle: "जैविक / देसी उपचार",
+                chemicalTitle: "रासायनिक दवा (स्प्रे)",
+                preventionTitle: "रोकथाम और सावधानियां",
+                healthyBadge: "स्वस्थ पत्ती (रोगमुक्त)",
+                pathogenBadge: "रोग / कीट का संक्रमण मिला",
+                venationFound: "पत्ती की नसें सत्यापित",
+                venationNotFound: "उपलब्ध नहीं"
+            }
+        };
 
-        // Agriculture Knowledge Base for Step 2
+        // Complete Bilingual Crop Pathology Database
         const DISEASES_DB = [
             {
-                crop: "Tomato",
-                condition: "Early Blight (Alternaria solani)",
+                id: "tomato_early_blight",
+                crop: { en: "Tomato", hi: "टमाटर" },
+                condition: { en: "Early Blight (Alternaria solani)", hi: "अगेती झुलसा रोग (अल्टरनेरिया)" },
                 isHealthy: false,
-                symptoms: "Target-board circular dark brown spots with concentric rings and yellow halos on foliage.",
-                organic: "Cold-pressed neem oil spray (5ml/L) or copper soap biopesticide every 7 days.",
-                chemical: "Spray Mancozeb 75% WP (2.5g/L) or Chlorothalonil early in the morning.",
-                prevention: "Mulch soil around plants; avoid overhead watering; remove lower blighted foliage."
+                symptoms: {
+                    en: "Target-board circular dark brown spots with concentric rings and yellow halos on older foliage.",
+                    hi: "पुरानी पत्तियों पर गोल भूरे-काले छल्लेदार धब्बे (टारगेट बोर्ड जैसे) और उनके चारों ओर पीलापन।"
+                },
+                organic: {
+                    en: "Cold-pressed neem oil spray (5ml/L) or copper soap biopesticide every 7 days.",
+                    hi: "नीम का तेल (5 मिली प्रति लीटर पानी) या कॉपर युक्त जैव-फफूंदनाशक का हर 7 दिन पर छिड़काव करें।"
+                },
+                chemical: {
+                    en: "Spray Mancozeb 75% WP (2.5g/L) or Chlorothalonil early in the morning.",
+                    hi: "मैंकोज़ेब 75% WP (2.5 ग्राम/लीटर) या क्लोरोथैलोनिल का सुबह के समय पत्तियों पर छिड़काव करें।"
+                },
+                prevention: {
+                    en: "Mulch soil around plants; avoid overhead watering; remove lower blighted foliage.",
+                    hi: "जड़ों के पास मल्चिंग करें; पत्तियों पर सीधे पानी न डालें; निचली सूखी पत्तियों को तोड़कर नष्ट कर दें।"
+                }
             },
             {
-                crop: "Potato",
-                condition: "Late Blight (Phytophthora infestans)",
+                id: "potato_late_blight",
+                crop: { en: "Potato", hi: "आलू" },
+                condition: { en: "Late Blight (Phytophthora infestans)", hi: "पछेती झुलसा रोग (लेट ब्लाइट)" },
                 isHealthy: false,
-                symptoms: "Water-soaked decaying brown-black lesions with white fungal mold under leaves during high humidity.",
-                organic: "Bio-fungicide formulated with Trichoderma viride or Bacillus subtilis.",
-                chemical: "Ridomil Gold (Metalaxyl-M + Mancozeb @ 2.5g/L) foliar spray.",
-                prevention: "Ensure good field aeration; burn infected plant debris immediately."
+                symptoms: {
+                    en: "Water-soaked decaying brown-black lesions with white fungal mold under leaves during high humidity.",
+                    hi: "पत्तियों पर गीले भूरे-काले सड़न वाले धब्बे और अधिक नमी के समय पत्ती के नीचे सफेद फफूंद दिखना।"
+                },
+                organic: {
+                    en: "Bio-fungicide formulated with Trichoderma viride or Bacillus subtilis.",
+                    hi: "ट्राइकोडर्मा विरिडी या बैसिलस सबटिलिस जैव-फफूंदनाशक का घोल बनाकर छिड़कें।"
+                },
+                chemical: {
+                    en: "Ridomil Gold (Metalaxyl-M + Mancozeb @ 2.5g/L) foliar spray immediately.",
+                    hi: "रिडोमिल गोल्ड (मेटालैक्सिल + मैंकोज़ेब @ 2.5 ग्राम प्रति लीटर) का तुरंत छिड़काव करें।"
+                },
+                prevention: {
+                    en: "Ensure good field aeration; burn infected plant debris immediately.",
+                    hi: "खेत में जलजमाव न होने दें; गंभीर रूप से बीमार पौधों को उखाड़कर तुरंत जला दें।"
+                }
             },
             {
-                crop: "Tomato / Capsicum",
-                condition: "Two-Spotted Spider Mites",
+                id: "spider_mites",
+                crop: { en: "Tomato / Capsicum", hi: "टमाटर / मिर्च / शिमला मिर्च" },
+                condition: { en: "Two-Spotted Spider Mites", hi: "लाल मकड़ी / माइट्स कीट संक्रमण" },
                 isHealthy: false,
-                symptoms: "Yellow stippling dots on leaf surfaces accompanied by fine silken webbing on undersides.",
-                organic: "Release Phytoseiulus persimilis predatory mites or spray potassium salt insecticidal soap.",
-                chemical: "Spray Spiromesifen (Oberon @ 1ml/L) targeting leaf undersides.",
-                prevention: "Avoid dry and dusty field conditions; irrigate plants to balance moisture."
+                symptoms: {
+                    en: "Yellow stippling dots on leaf surfaces accompanied by fine silken webbing on undersides.",
+                    hi: "पत्ती की ऊपरी सतह पर बारीक पीले धब्बे और निचली सतह पर मकड़ी के महीन जाले दिखाई देना।"
+                },
+                organic: {
+                    en: "Release Phytoseiulus persimilis predatory mites or spray potassium salt insecticidal soap.",
+                    hi: "नीम का तेल (5ml/लीटर) या जैविक कीटनाशक साबुन के घोल का पत्तियों के नीचे छिड़काव करें।"
+                },
+                chemical: {
+                    en: "Spray Spiromesifen (Oberon @ 1ml/L) targeting leaf undersides.",
+                    hi: "ओबेरॉन (स्पाइरोमेसिफेन @ 1 मिली प्रति लीटर) का पत्तियों के निचले हिस्से पर अच्छी तरह छिड़काव करें।"
+                },
+                prevention: {
+                    en: "Avoid dry and dusty field conditions; irrigate plants to balance moisture.",
+                    hi: "खेत में सूखा और धूल न जमने दें; पर्याप्त नमी बनाए रखने से मकड़ी का प्रकोप घटता है।"
+                }
             },
             {
-                crop: "Corn (Maize)",
-                condition: "Common Rust (Puccinia sorghi)",
+                id: "corn_rust",
+                crop: { en: "Corn (Maize)", hi: "मक्का" },
+                condition: { en: "Common Rust (Puccinia sorghi)", hi: "रतुआ / गेरुआ रोग (रस्ट)" },
                 isHealthy: false,
-                symptoms: "Golden-brown to cinnamon-brown powdery pustules on both upper and lower leaf surfaces.",
-                organic: "Wettable sulfur spray (3g/L) at early sign of spotting.",
-                chemical: "Azoxystrobin + Difenoconazole (Amistar Top @ 1ml/L).",
-                prevention: "Plant rust-resistant hybrid seeds; control weed hosts around field margins."
+                symptoms: {
+                    en: "Golden-brown to cinnamon-brown powdery pustules on both upper and lower leaf surfaces.",
+                    hi: "पत्तियों के दोनों तरफ भूरे-लाल रंग के उभरे हुए पाउडर जैसे फफोले (दाने) बन जाना।"
+                },
+                organic: {
+                    en: "Wettable sulfur spray (3g/L) at early sign of spotting.",
+                    hi: "घुलनशील गंधक / सल्फर (3 ग्राम प्रति लीटर पानी) का शुरुआती लक्षण दिखते ही छिड़काव करें।"
+                },
+                chemical: {
+                    en: "Azoxystrobin + Difenoconazole (Amistar Top @ 1ml/L).",
+                    hi: "एमिस्टार टॉप (एज़ोक्सीस्ट्रोबिन + डिफेनोकोनाज़ोल @ 1 मिली प्रति लीटर) का छिड़काव करें।"
+                },
+                prevention: {
+                    en: "Plant rust-resistant hybrid seeds; control weed hosts around field margins.",
+                    hi: "रोग-प्रतिरोधी बीजों का प्रयोग करें और खेत की मेड़ों से खरपतवार साफ रखें।"
+                }
             },
             {
-                crop: "Crop Leaf",
-                condition: "Healthy Foliage",
+                id: "healthy_leaf",
+                crop: { en: "Crop Leaf", hi: "फसल की पत्ती" },
+                condition: { en: "Healthy Foliage", hi: "पूरी तरह स्वस्थ पत्ती" },
                 isHealthy: true,
-                symptoms: "Uniform vibrant green leaf blade with healthy cellular venation and zero necrotic spots.",
-                organic: "Continue seaweed extract or vermicompost foliar spray.",
-                chemical: "No chemical fungicide or pesticide needed.",
-                prevention: "Maintain drip irrigation schedule and regular soil fertility tests."
+                symptoms: {
+                    en: "Uniform vibrant green leaf blade with healthy cellular venation and zero necrotic spots.",
+                    hi: "एकसमान हरी और ताज़ा पत्ती; नसों की बनावट स्वस्थ है और कोई धब्बे या कीट नहीं पाए गए।"
+                },
+                organic: {
+                    en: "Continue seaweed extract or vermicompost foliar spray.",
+                    hi: "समुद्री शैवाल अर्क (सीवीड) या वर्मीवाश का नियमित छिड़काव जारी रखें।"
+                },
+                chemical: {
+                    en: "No chemical fungicide or pesticide needed.",
+                    hi: "किसी भी रासायनिक कीटनाशक या फफूंदनाशक दवा की आवश्यकता नहीं है।"
+                },
+                prevention: {
+                    en: "Maintain drip irrigation schedule and regular soil fertility tests.",
+                    hi: "संतुलित सिंचाई जारी रखें और हर मौसम में मिट्टी की जांच कराते रहें।"
+                }
             }
         ];
+
+        // ===================================================================
+        // 2. LANGUAGE SWITCHING ENGINE
+        // ===================================================================
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('agro_lang', lang);
+
+            const btnEn = document.getElementById('langBtnEn');
+            const btnHi = document.getElementById('langBtnHi');
+
+            if (lang === 'hi') {
+                btnHi.className = "px-2.5 py-1 rounded-md transition bg-white text-emerald-900 shadow";
+                btnEn.className = "px-2.5 py-1 rounded-md transition text-emerald-100 hover:text-white";
+            } else {
+                btnEn.className = "px-2.5 py-1 rounded-md transition bg-white text-emerald-900 shadow";
+                btnHi.className = "px-2.5 py-1 rounded-md transition text-emerald-100 hover:text-white";
+            }
+
+            // Translate static elements
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (I18N[lang] && I18N[lang][key]) {
+                    el.innerHTML = I18N[lang][key];
+                }
+            });
+
+            // Re-render diagnosis card if a leaf is currently scanned
+            if (currentScanResult) {
+                renderDiagnosisCard(currentScanResult, lastFoliageScore);
+            }
+
+            loadHistory();
+            lucide.createIcons();
+        }
+
+        // ===================================================================
+        // 3. CAMERA & FILE HANDLING
+        // ===================================================================
+        let currentImageBase64 = null;
+        let videoStream = null;
 
         function switchTab(tab) {
             const uploadView = document.getElementById('uploadView');
@@ -333,7 +551,7 @@
                 videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 document.getElementById('webcam').srcObject = videoStream;
             } catch (err) {
-                alert("Camera permission denied or camera unavailable.");
+                alert(currentLang === 'hi' ? "कैमरा अनुमति नहीं मिली।" : "Camera permission denied or camera unavailable.");
             }
         }
 
@@ -369,7 +587,7 @@
         }
 
         // ===================================================================
-        // STEP 1: STRICT IN-MEMORY LEAF VERIFICATION ENGINE
+        // 4. STEP 1: BOTANICAL LEAF VERIFICATION ENGINE
         // ===================================================================
         function executeStep1LeafVerification(imageSource) {
             const canvas = document.createElement('canvas');
@@ -389,13 +607,13 @@
                 const g = imgData[i + 1];
                 const b = imgData[i + 2];
 
-                // Botanical Chlorophyll Excess Green Index: ExG = 2G - R - B
+                // Botanical Excess Green Index (ExG = 2G - R - B)
                 const exg = (2 * g) - r - b;
 
-                // 1. Vibrant Green Leaf criteria
+                // 1. Healthy green chlorophyll criteria
                 const isGreenChlorophyll = (g > b * 1.18) && (g > r * 0.95) && (g > 38) && (exg > 12);
 
-                // 2. Yellow/Brown Blighted Leaf criteria
+                // 2. Yellow/Brown Blighted necrotic leaf criteria
                 const isBlightFoliage = (r > 65) && (g > 65) && (b < g * 0.65) && (Math.abs(r - g) < 40);
 
                 if (isGreenChlorophyll || isBlightFoliage) {
@@ -406,7 +624,6 @@
 
             const foliagePercentage = (leafFoliagePixels / totalPixels) * 100;
 
-            // Organic venation & texture variance check
             let stdDev = 0;
             if (greenChannelSamples.length > 50) {
                 const mean = greenChannelSamples.reduce((a, b) => a + b, 0) / greenChannelSamples.length;
@@ -414,47 +631,54 @@
                 stdDev = Math.sqrt(variance);
             }
 
-            // A valid leaf must cover at least 18% of the image and have biological texture variance
             const isGenuineLeaf = (foliagePercentage >= 18.0) && (stdDev >= 6.0);
 
             return {
                 isLeaf: isGenuineLeaf,
                 score: foliagePercentage.toFixed(1),
-                texture: stdDev > 6.0 ? "Verified Organic Venation" : "No Leaf Venation"
+                textureFound: stdDev > 6.0
             };
         }
 
         // ===================================================================
-        // 2-STAGE PIPELINE: STEP 1 (VERIFY LEAF) -> STEP 2 (DIAGNOSE)
+        // 5. PIPELINE EXECUTION
         // ===================================================================
         function runPipeline() {
             if (!currentImageBase64) return;
 
-            // Reset UI
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('resultCard').classList.add('hidden');
             document.getElementById('rejectionCard').classList.add('hidden');
             document.getElementById('loadingState').classList.remove('hidden');
 
-            document.getElementById('loadingTitle').textContent = "Step 1: Running Leaf Test...";
-            document.getElementById('loadingSubtitle').textContent = "Checking image for botanical chlorophyll, cellular structure, and leaf margins.";
+            document.getElementById('loadingTitle').textContent = I18N[currentLang].step1Title;
+            document.getElementById('loadingSubtitle').textContent = I18N[currentLang].step1Sub;
 
             const img = new Image();
             img.onload = function() {
-                // Execute Step 1
                 const leafCheck = executeStep1LeafVerification(img);
+                lastFoliageScore = leafCheck.score;
 
                 setTimeout(() => {
                     if (!leafCheck.isLeaf) {
-                        // STEP 1 FAILED -> ABORT
+                        // Step 1 Failed -> Reject Non-Living Object
                         showStep1Failure(leafCheck);
                     } else {
-                        // STEP 1 PASSED -> PROCEED TO STEP 2
-                        document.getElementById('loadingTitle').textContent = "Step 2: Analyzing Pathology & Pests...";
-                        document.getElementById('loadingSubtitle').textContent = "Leaf confirmed. Scanning for fungal lesions, blight, and spider mites.";
+                        // Step 1 Passed -> Proceed to Step 2
+                        document.getElementById('loadingTitle').textContent = I18N[currentLang].step2Title;
+                        document.getElementById('loadingSubtitle').textContent = I18N[currentLang].step2Sub;
 
                         setTimeout(() => {
-                            showStep2Diagnosis(leafCheck.score);
+                            const selected = DISEASES_DB[Math.floor(Math.random() * (DISEASES_DB.length - 1))];
+                            const confidence = (Math.random() * (98.2 - 93.0) + 93.0).toFixed(1);
+                            
+                            currentScanResult = {
+                                disease: selected,
+                                confidence: confidence
+                            };
+
+                            renderDiagnosisCard(currentScanResult, leafCheck.score);
+                            saveToHistory(selected, confidence);
                         }, 700);
                     }
                 }, 800);
@@ -468,50 +692,50 @@
             card.classList.remove('hidden');
 
             document.getElementById('metricChlorophyllBadge').textContent = `${check.score}% Foliage`;
-            document.getElementById('chlorophyllVal').textContent = `${check.score}% (Threshold: 18%)`;
-            document.getElementById('venationVal').textContent = check.texture;
+            document.getElementById('chlorophyllVal').textContent = `${check.score}% (${currentLang === 'hi' ? 'न्यूनतम: 18%' : 'Min: 18%'})`;
+            document.getElementById('venationVal').textContent = check.textureFound 
+                ? I18N[currentLang].venationFound 
+                : I18N[currentLang].venationNotFound;
+
             lucide.createIcons();
         }
 
-        function showStep2Diagnosis(leafScore) {
+        function renderDiagnosisCard(resultData, leafScore) {
             document.getElementById('loadingState').classList.add('hidden');
             const card = document.getElementById('resultCard');
             card.classList.remove('hidden');
 
-            // Select diagnosis from knowledge base
-            const selected = DISEASES_DB[Math.floor(Math.random() * (DISEASES_DB.length - 1))];
-            const confidence = (Math.random() * (98.2 - 93.0) + 93.0).toFixed(1);
-
+            const item = resultData.disease;
             document.getElementById('leafScoreText').textContent = `${leafScore}%`;
 
             const badge = document.getElementById('healthBadge');
-            if (selected.isHealthy) {
+            if (item.isHealthy) {
                 badge.className = "text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-100 text-emerald-800";
-                badge.textContent = "Healthy Foliage";
+                badge.textContent = I18N[currentLang].healthyBadge;
             } else {
                 badge.className = "text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-rose-100 text-rose-800";
-                badge.textContent = "Pathogen Detected";
+                badge.textContent = I18N[currentLang].pathogenBadge;
             }
 
-            document.getElementById('resDisease').textContent = `${selected.crop} — ${selected.condition}`;
-            document.getElementById('resConfidence').textContent = `${confidence}%`;
+            document.getElementById('resDisease').textContent = `${item.crop[currentLang]} — ${item.condition[currentLang]}`;
+            document.getElementById('resConfidence').textContent = `${resultData.confidence}%`;
             document.getElementById('resThumb').src = currentImageBase64;
-            document.getElementById('resSymptoms').textContent = selected.symptoms;
-            document.getElementById('resOrganic').textContent = selected.organic;
-            document.getElementById('resChemical').textContent = selected.chemical;
-            document.getElementById('resPrevention').textContent = selected.prevention;
+            document.getElementById('resSymptoms').textContent = item.symptoms[currentLang];
+            document.getElementById('resOrganic').textContent = item.organic[currentLang];
+            document.getElementById('resChemical').textContent = item.chemical[currentLang];
+            document.getElementById('resPrevention').textContent = item.prevention[currentLang];
 
-            saveToHistory(selected, confidence);
             lucide.createIcons();
         }
 
-        function saveToHistory(data, conf) {
+        function saveToHistory(item, conf) {
             const history = JSON.parse(localStorage.getItem('leaf_scans') || '[]');
             const entry = {
-                title: `${data.crop} (${data.condition.split(' ')[0]})`,
+                titleEn: `${item.crop.en} (${item.condition.en.split(' ')[0]})`,
+                titleHi: `${item.crop.hi} (${item.condition.hi.split(' ')[0]})`,
                 conf: conf,
                 date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                isHealthy: data.isHealthy
+                isHealthy: item.isHealthy
             };
             history.unshift(entry);
             localStorage.setItem('leaf_scans', JSON.stringify(history.slice(0, 10)));
@@ -522,13 +746,13 @@
             const list = document.getElementById('historyList');
             const history = JSON.parse(localStorage.getItem('leaf_scans') || '[]');
             if (history.length === 0) {
-                list.innerHTML = `<p class="text-[11px] text-slate-400 py-2">No past scans logged.</p>`;
+                list.innerHTML = `<p class="text-[11px] text-slate-400 py-2">${I18N[currentLang].noHistory}</p>`;
                 return;
             }
             list.innerHTML = history.map(item => `
                 <div class="py-2 flex items-center justify-between">
                     <div>
-                        <p class="font-semibold text-slate-800">${item.title}</p>
+                        <p class="font-semibold text-slate-800">${currentLang === 'hi' ? item.titleHi : item.titleEn}</p>
                         <span class="text-[10px] text-slate-400">${item.date}</span>
                     </div>
                     <span class="px-2 py-0.5 rounded font-bold text-[10px] ${item.isHealthy ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
@@ -543,7 +767,10 @@
             loadHistory();
         }
 
-        loadHistory();
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            setLanguage(currentLang);
+        });
     </script>
 </body>
 </html>
