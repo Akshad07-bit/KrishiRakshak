@@ -22,16 +22,41 @@
             animation: cardPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        .bg-grid-pattern {
-            background-image: radial-gradient(rgba(16, 185, 129, 0.08) 1px, transparent 1px);
-            background-size: 24px 24px;
+        /* Modern Agricultural Topographic & Dot Matrix Pattern */
+        .bg-agri-pattern {
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.12) 1.5px, transparent 1.5px),
+                linear-gradient(to right, rgba(5, 150, 105, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(5, 150, 105, 0.03) 1px, transparent 1px);
+            background-size: 28px 28px, 56px 56px, 56px 56px;
+        }
+
+        /* Ambient floating glow animation */
+        @keyframes floatGlow {
+            0%, 100% { transform: translate(0px, 0px) scale(1); }
+            50% { transform: translate(15px, -15px) scale(1.05); }
+        }
+        .animate-glow-slow {
+            animation: floatGlow 12s ease-in-out infinite;
         }
     </style>
 </head>
-<body class="bg-slate-50/80 bg-grid-pattern text-slate-800 min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-white">
+<body class="bg-gradient-to-br from-emerald-50/60 via-slate-50 to-teal-50/50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-white relative overflow-x-hidden">
 
-    <!-- Premium Navbar -->
-    <header class="bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white shadow-xl shadow-emerald-950/10 sticky top-0 z-50 border-b border-emerald-800/40 backdrop-blur-md">
+    <!-- Glowing Ambient Lights & Background Aesthetics -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <!-- Top Left Emerald Aurora Glow -->
+        <div class="absolute -top-28 -left-28 w-[450px] h-[450px] bg-emerald-400/20 rounded-full blur-[110px] animate-glow-slow"></div>
+        <!-- Right Amber Harvest Glow -->
+        <div class="absolute top-1/4 -right-28 w-[400px] h-[400px] bg-amber-400/15 rounded-full blur-[120px] animate-glow-slow" style="animation-delay: -4s;"></div>
+        <!-- Bottom Center Teal Bloom -->
+        <div class="absolute -bottom-24 left-1/3 w-[500px] h-[500px] bg-teal-400/18 rounded-full blur-[130px] animate-glow-slow" style="animation-delay: -8s;"></div>
+        <!-- Subtle Pattern Grid Layer -->
+        <div class="absolute inset-0 bg-agri-pattern opacity-75"></div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white shadow-xl shadow-emerald-950/15 sticky top-0 z-50 border-b border-emerald-800/40 backdrop-blur-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
             
             <!-- Brand Logo -->
@@ -77,26 +102,26 @@
     </header>
 
     <!-- Main Workspace -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full space-y-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full space-y-8 relative z-10">
         
-        <!-- 2-Stage Pipeline Visual Tracker -->
-        <div class="bg-white/80 backdrop-blur rounded-2xl p-4 border border-emerald-900/10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+        <!-- 2-Stage Pipeline Visual Tracker (Frosted Glass) -->
+        <div class="bg-white/80 backdrop-blur-xl rounded-3xl p-4 sm:p-5 border border-white/80 shadow-lg shadow-emerald-950/5 flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3 w-full md:w-auto">
-                <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">1</div>
+                <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-extrabold text-xs shadow-md shadow-emerald-600/20 shrink-0">1</div>
                 <div>
-                    <h4 class="text-xs font-bold text-slate-800" data-i18n="trackStep1Title">Stage 1: Botanical Gatekeeper</h4>
+                    <h4 class="text-xs font-bold text-slate-900" data-i18n="trackStep1Title">Stage 1: Botanical Gatekeeper</h4>
                     <p class="text-[11px] text-slate-500" data-i18n="trackStep1Sub">Rejects non-living objects (phones, keys, furniture)</p>
                 </div>
             </div>
-            <i data-lucide="arrow-right" class="hidden md:block w-4 h-4 text-slate-300"></i>
+            <i data-lucide="arrow-right" class="hidden md:block w-4 h-4 text-emerald-300"></i>
             <div class="flex items-center gap-3 w-full md:w-auto">
-                <div class="w-8 h-8 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-xs shrink-0">2</div>
+                <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white flex items-center justify-center font-extrabold text-xs shadow-md shadow-teal-600/20 shrink-0">2</div>
                 <div>
-                    <h4 class="text-xs font-bold text-slate-800" data-i18n="trackStep2Title">Stage 2: Pathology Diagnostic Engine</h4>
+                    <h4 class="text-xs font-bold text-slate-900" data-i18n="trackStep2Title">Stage 2: Pathology Diagnostic Engine</h4>
                     <p class="text-[11px] text-slate-500" data-i18n="trackStep2Sub">Identifies pathogen, severity & prescriptive cures</p>
                 </div>
             </div>
-            <div class="hidden lg:flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+            <div class="hidden lg:flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 bg-emerald-100/70 border border-emerald-300/80 px-3.5 py-1.5 rounded-2xl shadow-sm">
                 <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
                 <span data-i18n="trackZeroError">Zero False-Positive Guard</span>
             </div>
@@ -107,22 +132,22 @@
             <!-- Left Side: Input Controls & File Handling -->
             <div class="lg:col-span-5 space-y-6">
                 
-                <!-- Upload & Capture Card -->
-                <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-6 sm:p-7 relative overflow-hidden">
+                <!-- Upload & Capture Card (Frosted Glass Panel) -->
+                <div class="bg-white/85 backdrop-blur-xl rounded-3xl shadow-xl shadow-emerald-950/5 border border-white/90 p-6 sm:p-7 relative overflow-hidden">
                     <div class="flex items-center justify-between mb-2">
                         <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
                             <i data-lucide="scan-line" class="w-5 h-5 text-emerald-600"></i>
                             <span data-i18n="scanFoliageTitle">Scan Plant Foliage</span>
                         </h2>
-                        <span class="text-[10px] uppercase tracking-wider font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">Input Zone</span>
+                        <span class="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">Input Zone</span>
                     </div>
                     <p class="text-xs text-slate-500 mb-5 leading-relaxed" data-i18n="scanFoliageDesc">
                         Upload or capture a leaf photo. Step 1 verifies whether a real plant leaf is present before analyzing diseases.
                     </p>
 
                     <!-- Toggle Tabs (Upload vs Camera) -->
-                    <div class="grid grid-cols-2 p-1 bg-slate-100/90 rounded-2xl mb-5 text-xs font-semibold">
-                        <button id="tabUploadBtn" onclick="switchTab('upload')" class="py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-white text-emerald-900 shadow-sm">
+                    <div class="grid grid-cols-2 p-1.5 bg-slate-100/80 backdrop-blur rounded-2xl mb-5 text-xs font-semibold border border-slate-200/60">
+                        <button id="tabUploadBtn" onclick="switchTab('upload')" class="py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-white text-emerald-950 shadow-sm font-bold">
                             <i data-lucide="upload-cloud" class="w-4 h-4 text-emerald-600"></i>
                             <span data-i18n="tabUpload">Upload File</span>
                         </button>
@@ -134,8 +159,8 @@
 
                     <!-- File Drop Area -->
                     <div id="uploadView">
-                        <label for="fileInput" class="group border-2 border-dashed border-emerald-200/90 hover:border-emerald-500 rounded-3xl p-6 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center bg-emerald-50/30 hover:bg-emerald-50/60 min-h-[170px]">
-                            <div class="w-12 h-12 rounded-2xl bg-emerald-100/80 text-emerald-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200 shadow-inner">
+                        <label for="fileInput" class="group border-2 border-dashed border-emerald-300/80 hover:border-emerald-500 rounded-3xl p-6 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center bg-gradient-to-b from-emerald-50/50 to-white/40 hover:bg-emerald-50/80 min-h-[170px] shadow-sm">
+                            <div class="w-13 h-13 p-3 rounded-2xl bg-gradient-to-tr from-emerald-100 to-teal-50 text-emerald-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200 shadow-md shadow-emerald-700/5 border border-emerald-200/60">
                                 <i data-lucide="image-plus" class="w-6 h-6"></i>
                             </div>
                             <span class="text-xs font-bold text-emerald-950" data-i18n="chooseImageText">Click to choose image</span>
@@ -164,25 +189,25 @@
                     <div id="previewContainer" class="hidden mt-5 pt-5 border-t border-slate-100 space-y-4">
                         <div class="flex items-center justify-between">
                             <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="loadedSample">Loaded Sample</p>
-                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Ready for Scan
                             </span>
                         </div>
                         
-                        <div class="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900/5 max-h-48 flex items-center justify-center p-1">
+                        <div class="relative rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-900/5 max-h-48 flex items-center justify-center p-1.5 shadow-inner">
                             <img id="previewImg" src="#" alt="Leaf Preview" class="max-h-44 rounded-xl object-contain shadow-sm">
                         </div>
                         
                         <!-- Primary Diagnosis Button -->
-                        <button onclick="runPipeline()" id="runPipelineActionBtn" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl text-xs sm:text-sm transition-all duration-200 shadow-xl shadow-emerald-600/25 flex items-center justify-center gap-2 active:scale-95 group">
+                        <button onclick="runPipeline()" id="runPipelineActionBtn" class="w-full py-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl text-xs sm:text-sm transition-all duration-200 shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2.5 active:scale-95 group">
                             <i data-lucide="play-circle" class="w-5 h-5 transition-transform group-hover:rotate-12"></i>
                             <span data-i18n="runPipelineBtn">Run 2-Stage Verification & Diagnosis</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Recent Scans Card -->
-                <div class="bg-white rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-200/80 p-6">
+                <!-- Recent Scans Card (Frosted Glass Panel) -->
+                <div class="bg-white/85 backdrop-blur-xl rounded-3xl shadow-lg shadow-emerald-950/5 border border-white/90 p-6">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
                             <i data-lucide="history" class="w-4 h-4 text-emerald-600"></i>
@@ -198,18 +223,18 @@
             <div class="lg:col-span-7 space-y-6" id="diagnosticOutputSection">
 
                 <!-- 1. Idle Empty State -->
-                <div id="emptyState" class="bg-white rounded-3xl border-2 border-dashed border-slate-200/90 p-12 text-center flex flex-col items-center justify-center min-h-[440px] shadow-sm">
-                    <div class="w-16 h-16 bg-emerald-50 text-emerald-700 rounded-3xl flex items-center justify-center mb-4 shadow-inner border border-emerald-100">
+                <div id="emptyState" class="bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-dashed border-emerald-300/50 p-12 text-center flex flex-col items-center justify-center min-h-[440px] shadow-sm">
+                    <div class="w-16 h-16 bg-gradient-to-tr from-emerald-100 to-teal-50 text-emerald-700 rounded-3xl flex items-center justify-center mb-4 shadow-md shadow-emerald-700/5 border border-emerald-200/80">
                         <i data-lucide="shield-check" class="w-8 h-8"></i>
                     </div>
-                    <h3 class="text-base font-bold text-slate-800" data-i18n="awaitingTitle">Awaiting Foliage Sample</h3>
+                    <h3 class="text-base font-bold text-slate-900" data-i18n="awaitingTitle">Awaiting Foliage Sample</h3>
                     <p class="text-xs text-slate-400 max-w-sm mt-1.5 leading-relaxed" data-i18n="awaitingDesc">
                         Upload or capture a leaf photo on the left. KrishiRakshak will first test botanical tissue before generating any prescription.
                     </p>
                 </div>
 
                 <!-- 2. Loading State with Live Radar -->
-                <div id="loadingState" class="hidden bg-white rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-[440px] shadow-xl shadow-slate-200/50 border border-emerald-100 space-y-4">
+                <div id="loadingState" class="hidden bg-white/90 backdrop-blur-xl rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-[440px] shadow-xl shadow-emerald-950/5 border border-emerald-200/80 space-y-4">
                     <div class="relative flex items-center justify-center">
                         <div class="w-16 h-16 rounded-full border-4 border-emerald-100 border-t-emerald-600 animate-spin"></div>
                         <i data-lucide="scan" class="w-6 h-6 text-emerald-600 absolute"></i>
@@ -221,7 +246,7 @@
                 </div>
 
                 <!-- 3. STEP 1 REJECTION CARD (NON-LIVING OBJECT GUARD) -->
-                <div id="rejectionCard" class="hidden bg-white rounded-3xl shadow-xl shadow-rose-100 border-2 border-rose-400 p-6 sm:p-7 space-y-5">
+                <div id="rejectionCard" class="hidden bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl shadow-rose-100 border-2 border-rose-400 p-6 sm:p-7 space-y-5">
                     <div class="flex items-start gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 shadow-inner">
                             <i data-lucide="x-octagon" class="w-6 h-6"></i>
@@ -231,7 +256,7 @@
                                 <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200" data-i18n="rejBadge">
                                     Step 1: Test Failed
                                 </span>
-                                <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200" id="metricChlorophyllBadge">0.0% Foliage</span>
+                                <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200" id="metricChlorophyllBadge">0.0% Foliage</span>
                             </div>
                             <h3 class="text-xl font-extrabold text-slate-900 mt-1" data-i18n="rejHeading">NO LEAF DETECTED</h3>
                             <p class="text-xs text-slate-500 mt-0.5" data-i18n="rejSubtext">
@@ -241,7 +266,7 @@
                     </div>
 
                     <!-- Metric Breakdown -->
-                    <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 space-y-2.5 text-xs">
+                    <div class="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 space-y-2.5 text-xs">
                         <div class="font-bold text-slate-800 flex items-center justify-between border-b border-slate-200 pb-2">
                             <span data-i18n="metricTitle">Step 1 Verification Metrics</span>
                             <span class="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200" data-i18n="lockedBadge">Diagnosis Locked 🔒</span>
@@ -270,10 +295,10 @@
                 </div>
 
                 <!-- 4. STEP 2 PASSED & PRESCRIPTION CARD -->
-                <div id="resultCard" class="hidden bg-white rounded-3xl shadow-xl shadow-emerald-100/50 border border-emerald-300 p-6 sm:p-7 space-y-6">
+                <div id="resultCard" class="hidden bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl shadow-emerald-950/5 border border-emerald-300/80 p-6 sm:p-7 space-y-6">
                     
                     <!-- Gatekeeper Pass Tag -->
-                    <div class="bg-emerald-50 border border-emerald-200 text-emerald-950 px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs font-semibold shadow-sm">
+                    <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-950 px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs font-semibold shadow-sm">
                         <div class="flex items-center gap-2">
                             <i data-lucide="badge-check" class="w-4 h-4 text-emerald-600"></i>
                             <span><strong data-i18n="step1PassPrefix">Step 1 Passed:</strong> <span data-i18n="realLeafConfirmed">Real leaf confirmed</span> (<span id="leafScoreText" class="font-bold text-emerald-700">74%</span> <span data-i18n="chlorophyllTissue">chlorophyll tissue</span>).</span>
@@ -303,13 +328,13 @@
                         <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5" data-i18n="symptomsTitle">
                             <i data-lucide="eye" class="w-3.5 h-3.5 text-slate-400"></i> Symptoms Identified
                         </h4>
-                        <p id="resSymptoms" class="text-xs text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 leading-relaxed font-medium"></p>
+                        <p id="resSymptoms" class="text-xs text-slate-700 bg-slate-50/90 p-4 rounded-2xl border border-slate-200/80 leading-relaxed font-medium"></p>
                     </div>
 
                     <!-- 3-Tier Treatment Plan -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
                         <!-- Organic -->
-                        <div class="bg-gradient-to-br from-emerald-50 to-teal-50/50 border border-emerald-200 p-4 rounded-2xl flex flex-col justify-between shadow-sm">
+                        <div class="bg-gradient-to-br from-emerald-50/90 to-teal-50/60 border border-emerald-200/90 p-4 rounded-2xl flex flex-col justify-between shadow-sm">
                             <div>
                                 <div class="flex items-center gap-1.5 mb-2 text-emerald-800 font-bold text-xs uppercase tracking-wide">
                                     <i data-lucide="leaf" class="w-4 h-4 text-emerald-600"></i> <span data-i18n="organicTitle">Organic Remedy</span>
@@ -319,7 +344,7 @@
                         </div>
 
                         <!-- Chemical -->
-                        <div class="bg-gradient-to-br from-amber-50 to-orange-50/50 border border-amber-200 p-4 rounded-2xl flex flex-col justify-between shadow-sm">
+                        <div class="bg-gradient-to-br from-amber-50/90 to-orange-50/60 border border-amber-200/90 p-4 rounded-2xl flex flex-col justify-between shadow-sm">
                             <div>
                                 <div class="flex items-center gap-1.5 mb-2 text-amber-800 font-bold text-xs uppercase tracking-wide">
                                     <i data-lucide="flask-conical" class="w-4 h-4 text-amber-600"></i> <span data-i18n="chemicalTitle">Chemical Cure</span>
@@ -329,7 +354,7 @@
                         </div>
 
                         <!-- Prevention -->
-                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50/50 border border-blue-200 p-4 rounded-2xl flex flex-col justify-between shadow-sm">
+                        <div class="bg-gradient-to-br from-blue-50/90 to-indigo-50/60 border border-blue-200/90 p-4 rounded-2xl flex flex-col justify-between shadow-sm">
                             <div>
                                 <div class="flex items-center gap-1.5 mb-2 text-blue-800 font-bold text-xs uppercase tracking-wide">
                                     <i data-lucide="shield-check" class="w-4 h-4 text-blue-600"></i> <span data-i18n="preventionTitle">Preventive Care</span>
@@ -345,7 +370,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200/80 mt-12 py-5 text-center text-xs text-slate-500">
+    <footer class="bg-white/80 backdrop-blur border-t border-slate-200/80 mt-12 py-5 text-center text-xs text-slate-500 relative z-10">
         <p class="font-medium">KrishiRakshak AI — Smart India Hackathon Agricultural Defense Prototype</p>
     </footer>
 
@@ -638,13 +663,13 @@
             if (tab === 'upload') {
                 uploadView.classList.remove('hidden');
                 cameraView.classList.add('hidden');
-                tabUploadBtn.className = "py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-white text-emerald-900 shadow-sm";
+                tabUploadBtn.className = "py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-white text-emerald-950 shadow-sm font-bold";
                 tabCameraBtn.className = "py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800";
                 stopCamera();
             } else {
                 uploadView.classList.add('hidden');
                 cameraView.classList.remove('hidden');
-                tabCameraBtn.className = "py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-white text-emerald-900 shadow-sm";
+                tabCameraBtn.className = "py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-white text-emerald-950 shadow-sm font-bold";
                 tabUploadBtn.className = "py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800";
                 startCamera();
             }
@@ -776,7 +801,6 @@
             document.getElementById('loadingTitle').textContent = I18N[currentLang].step1Title;
             document.getElementById('loadingSubtitle').textContent = I18N[currentLang].step1Sub;
 
-            // Glide to the loading state
             smoothScrollToOutput('loadingState');
 
             const img = new Image();
