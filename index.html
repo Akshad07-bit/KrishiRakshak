@@ -3,175 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroScan AI — 2-Stage Leaf Disease & Pest Detector</title>
+    <title>KrishiRakshak — Smart Crop Health & Pest Defense System</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif; }
-        
-        /* Smooth scrolling across all browsers */
+        body { font-family: 'Outfit', 'Noto Sans Devanagari', sans-serif; }
         html { scroll-behavior: smooth; }
 
         @keyframes cardPop {
-            0% { transform: scale(0.98); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+            0% { transform: translateY(12px) scale(0.98); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
         }
         .animate-card-pop {
-            animation: cardPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: cardPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(16, 185, 129, 0.08) 1px, transparent 1px);
+            background-size: 24px 24px;
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-50/80 bg-grid-pattern text-slate-800 min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-white">
 
-    <!-- Header Navigation -->
-    <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="bg-white/10 p-2 rounded-xl backdrop-blur">
-                    <i data-lucide="sprout" class="w-6 h-6 text-emerald-300"></i>
+    <!-- Premium Navbar -->
+    <header class="bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white shadow-xl shadow-emerald-950/10 sticky top-0 z-50 border-b border-emerald-800/40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+            
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3.5">
+                <div class="relative">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-amber-400 p-0.5 shadow-lg shadow-emerald-500/30 flex items-center justify-center">
+                        <div class="w-full h-full bg-emerald-950 rounded-[14px] flex items-center justify-center">
+                            <i data-lucide="shield-plus" class="w-5 h-5 text-emerald-400"></i>
+                        </div>
+                    </div>
+                    <span class="absolute -bottom-1 -right-1 flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
+                    </span>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold leading-none">AgroScan AI</h1>
-                    <span class="text-[11px] text-emerald-200" data-i18n="appSubtitle">Crop Health & Pest Diagnostic Web App</span>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-emerald-100 to-emerald-300 bg-clip-text text-transparent">KrishiRakshak</h1>
+                        <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">AI v2.4</span>
+                    </div>
+                    <p class="text-[11px] text-emerald-300/80 font-medium" data-i18n="appSubtitle">Smart Crop Health & Pest Defense System</p>
                 </div>
             </div>
 
-            <!-- Language Switcher & Badge -->
-            <div class="flex items-center space-x-3">
-                <div class="inline-flex rounded-lg bg-emerald-950/60 p-0.5 border border-emerald-600/60 text-xs font-semibold">
-                    <button onclick="setLanguage('en')" id="langBtnEn" class="px-2.5 py-1 rounded-md transition bg-white text-emerald-900 shadow">
+            <!-- Language Switcher & Live Badge -->
+            <div class="flex items-center space-x-3 sm:space-x-4">
+                <!-- Lang Toggle -->
+                <div class="inline-flex rounded-xl bg-emerald-950/80 p-1 border border-emerald-700/50 shadow-inner">
+                    <button onclick="setLanguage('en')" id="langBtnEn" class="px-3 py-1 rounded-lg text-xs font-semibold transition bg-emerald-500 text-white shadow-md">
                         English
                     </button>
-                    <button onclick="setLanguage('hi')" id="langBtnHi" class="px-2.5 py-1 rounded-md transition text-emerald-100 hover:text-white">
+                    <button onclick="setLanguage('hi')" id="langBtnHi" class="px-3 py-1 rounded-lg text-xs font-semibold transition text-emerald-200 hover:text-white">
                         हिंदी
                     </button>
                 </div>
 
-                <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-900/80 border border-emerald-600 text-emerald-100">
-                    <span class="w-2 h-2 mr-2 bg-emerald-400 rounded-full animate-ping"></span>
+                <span class="hidden md:inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-800/40 border border-emerald-600/50 text-emerald-200 backdrop-blur">
+                    <span class="w-2 h-2 mr-2 bg-emerald-400 rounded-full animate-pulse"></span>
                     <span data-i18n="guardActive">Gatekeeper Active</span>
                 </span>
             </div>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">
+    <!-- Main Workspace -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full space-y-8">
+        
+        <!-- 2-Stage Pipeline Visual Tracker -->
+        <div class="bg-white/80 backdrop-blur rounded-2xl p-4 border border-emerald-900/10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">1</div>
+                <div>
+                    <h4 class="text-xs font-bold text-slate-800" data-i18n="trackStep1Title">Stage 1: Botanical Gatekeeper</h4>
+                    <p class="text-[11px] text-slate-500" data-i18n="trackStep1Sub">Rejects non-living objects (phones, keys, furniture)</p>
+                </div>
+            </div>
+            <i data-lucide="arrow-right" class="hidden md:block w-4 h-4 text-slate-300"></i>
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="w-8 h-8 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-xs shrink-0">2</div>
+                <div>
+                    <h4 class="text-xs font-bold text-slate-800" data-i18n="trackStep2Title">Stage 2: Pathology Diagnostic Engine</h4>
+                    <p class="text-[11px] text-slate-500" data-i18n="trackStep2Sub">Identifies pathogen, severity & prescriptive cures</p>
+                </div>
+            </div>
+            <div class="hidden lg:flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                <span data-i18n="trackZeroError">Zero False-Positive Guard</span>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- Left Panel: Input & Controls -->
+            <!-- Left Side: Input Controls & File Handling -->
             <div class="lg:col-span-5 space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <h2 class="text-base font-bold text-slate-800 mb-1 flex items-center gap-2">
-                        <i data-lucide="scan-line" class="w-5 h-5 text-emerald-600"></i>
-                        <span data-i18n="scanFoliageTitle">Scan Plant Foliage</span>
-                    </h2>
-                    <p class="text-xs text-slate-500 mb-4" data-i18n="scanFoliageDesc">
+                
+                <!-- Upload & Capture Card -->
+                <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-6 sm:p-7 relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="scan-line" class="w-5 h-5 text-emerald-600"></i>
+                            <span data-i18n="scanFoliageTitle">Scan Plant Foliage</span>
+                        </h2>
+                        <span class="text-[10px] uppercase tracking-wider font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">Input Zone</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-5 leading-relaxed" data-i18n="scanFoliageDesc">
                         Upload or capture a leaf photo. Step 1 verifies whether a real plant leaf is present before analyzing diseases.
                     </p>
 
-                    <!-- Input Mode Tabs -->
-                    <div class="flex border-b border-slate-200 mb-4 text-xs font-semibold">
-                        <button id="tabUploadBtn" onclick="switchTab('upload')" class="py-2 px-4 border-b-2 border-emerald-600 text-emerald-700 flex items-center gap-2">
-                            <i data-lucide="upload" class="w-4 h-4"></i> <span data-i18n="tabUpload">Upload File</span>
+                    <!-- Toggle Tabs (Upload vs Camera) -->
+                    <div class="grid grid-cols-2 p-1 bg-slate-100/90 rounded-2xl mb-5 text-xs font-semibold">
+                        <button id="tabUploadBtn" onclick="switchTab('upload')" class="py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-white text-emerald-900 shadow-sm">
+                            <i data-lucide="upload-cloud" class="w-4 h-4 text-emerald-600"></i>
+                            <span data-i18n="tabUpload">Upload File</span>
                         </button>
-                        <button id="tabCameraBtn" onclick="switchTab('camera')" class="py-2 px-4 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2">
-                            <i data-lucide="camera" class="w-4 h-4"></i> <span data-i18n="tabCamera">Live Camera</span>
+                        <button id="tabCameraBtn" onclick="switchTab('camera')" class="py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800">
+                            <i data-lucide="camera" class="w-4 h-4"></i>
+                            <span data-i18n="tabCamera">Live Camera</span>
                         </button>
                     </div>
 
-                    <!-- File Upload View -->
-                    <div id="uploadView" class="space-y-4">
-                        <label for="fileInput" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center bg-slate-50 min-h-[160px]">
-                            <i data-lucide="image-plus" class="w-9 h-9 text-slate-400 mb-2"></i>
-                            <span class="text-xs font-semibold text-emerald-700" data-i18n="chooseImageText">Click to choose image</span>
-                            <span class="text-[11px] text-slate-400 mt-0.5">JPG, PNG, WEBP</span>
+                    <!-- File Drop Area -->
+                    <div id="uploadView">
+                        <label for="fileInput" class="group border-2 border-dashed border-emerald-200/90 hover:border-emerald-500 rounded-3xl p-6 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center bg-emerald-50/30 hover:bg-emerald-50/60 min-h-[170px]">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-100/80 text-emerald-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200 shadow-inner">
+                                <i data-lucide="image-plus" class="w-6 h-6"></i>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-950" data-i18n="chooseImageText">Click to choose image</span>
+                            <span class="text-[11px] text-slate-400 mt-1">High-Res JPEG, PNG, WEBP supported</span>
                             <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFile(event)">
                         </label>
                     </div>
 
-                    <!-- Camera View -->
+                    <!-- Live Webcam Stream View -->
                     <div id="cameraView" class="hidden space-y-4 text-center">
-                        <div class="relative bg-black rounded-xl overflow-hidden aspect-video flex items-center justify-center">
+                        <div class="relative bg-slate-950 rounded-2xl overflow-hidden aspect-video flex items-center justify-center shadow-inner border border-slate-800">
                             <video id="webcam" autoplay playsinline class="w-full h-full object-cover"></video>
                             <canvas id="snapshotCanvas" class="hidden"></canvas>
                         </div>
-                        <div class="flex justify-center gap-2">
-                            <button onclick="startCamera()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium flex items-center gap-1.5">
+                        <div class="flex justify-center gap-2.5">
+                            <button onclick="startCamera()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
                                 <i data-lucide="video" class="w-3.5 h-3.5"></i> <span data-i18n="openCamBtn">Open Cam</span>
                             </button>
-                            <button onclick="takeSnapshot()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow">
+                            <button onclick="takeSnapshot()" class="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition">
                                 <i data-lucide="aperture" class="w-3.5 h-3.5"></i> <span data-i18n="snapPhotoBtn">Snap Photo</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Preview Thumbnail & Pipeline Trigger -->
-                    <div id="previewContainer" class="hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
-                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="loadedSample">Loaded Sample</p>
-                        <div class="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 max-h-44 flex items-center justify-center">
-                            <img id="previewImg" src="#" alt="Leaf Preview" class="max-h-44 object-contain">
+                    <!-- Loaded Thumbnail & Trigger Action Button -->
+                    <div id="previewContainer" class="hidden mt-5 pt-5 border-t border-slate-100 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="loadedSample">Loaded Sample</p>
+                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Ready for Scan</span>
                         </div>
                         
-                        <button onclick="runPipeline()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 active:scale-95">
-                            <i data-lucide="play-circle" class="w-4 h-4"></i>
+                        <div class="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900/5 max-h-48 flex items-center justify-center p-1">
+                            <img id="previewImg" src="#" alt="Leaf Preview" class="max-h-44 rounded-xl object-contain shadow-sm">
+                        </div>
+                        
+                        <!-- Primary Diagnosis Button -->
+                        <button onclick="runPipeline()" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl text-xs sm:text-sm transition-all duration-200 shadow-xl shadow-emerald-600/25 flex items-center justify-center gap-2 active:scale-95 group">
+                            <i data-lucide="play-circle" class="w-5 h-5 transition-transform group-hover:rotate-12"></i>
                             <span data-i18n="runPipelineBtn">Run 2-Stage Verification & Diagnosis</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Scan History -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <!-- Recent Scans Card -->
+                <div class="bg-white rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-200/80 p-6">
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-xs font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wider">
-                            <i data-lucide="history" class="w-4 h-4 text-slate-400"></i>
+                        <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
+                            <i data-lucide="history" class="w-4 h-4 text-emerald-600"></i>
                             <span data-i18n="historyTitle">Scan History</span>
                         </h3>
-                        <button onclick="clearHistory()" class="text-[11px] text-slate-400 hover:text-rose-600" data-i18n="clearBtn">Clear</button>
+                        <button onclick="clearHistory()" class="text-[11px] font-semibold text-slate-400 hover:text-rose-600 transition" data-i18n="clearBtn">Clear</button>
                     </div>
-                    <div id="historyList" class="divide-y divide-slate-100 max-h-40 overflow-y-auto text-xs"></div>
+                    <div id="historyList" class="divide-y divide-slate-100 max-h-40 overflow-y-auto text-xs pr-1"></div>
                 </div>
             </div>
 
-            <!-- Right Panel: Output & Results Container -->
+            <!-- Right Side: Diagnostics & Prescriptive Actions -->
             <div class="lg:col-span-7 space-y-6" id="diagnosticOutputSection">
 
-                <!-- 1. Idle Placeholder -->
-                <div id="emptyState" class="bg-white border border-dashed border-slate-200 rounded-2xl p-12 text-center flex flex-col items-center justify-center min-h-[420px]">
-                    <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-3">
+                <!-- 1. Idle Empty State -->
+                <div id="emptyState" class="bg-white rounded-3xl border-2 border-dashed border-slate-200/90 p-12 text-center flex flex-col items-center justify-center min-h-[440px] shadow-sm">
+                    <div class="w-16 h-16 bg-emerald-50 text-emerald-700 rounded-3xl flex items-center justify-center mb-4 shadow-inner border border-emerald-100">
                         <i data-lucide="shield-check" class="w-8 h-8"></i>
                     </div>
-                    <h3 class="text-sm font-semibold text-slate-700" data-i18n="awaitingTitle">Awaiting Foliage Sample</h3>
-                    <p class="text-xs text-slate-400 max-w-sm mt-1" data-i18n="awaitingDesc">
-                        Upload or capture a photo on the left. The app runs a Step 1 Leaf Test to confirm biological plant foliage before attempting any diagnosis.
+                    <h3 class="text-base font-bold text-slate-800" data-i18n="awaitingTitle">Awaiting Foliage Sample</h3>
+                    <p class="text-xs text-slate-400 max-w-sm mt-1.5 leading-relaxed" data-i18n="awaitingDesc">
+                        Upload or capture a leaf photo on the left. KrishiRakshak will first test botanical tissue before generating any prescription.
                     </p>
                 </div>
 
-                <!-- 2. Loading / Processing View -->
-                <div id="loadingState" class="hidden bg-white rounded-2xl p-12 text-center flex flex-col items-center justify-center min-h-[420px] shadow-sm border border-slate-200 space-y-3">
-                    <div class="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
-                    <p class="text-sm font-bold text-slate-800" id="loadingTitle">Running Step 1: Leaf Verification...</p>
-                    <p class="text-xs text-slate-400 max-w-xs" id="loadingSubtitle">Checking image for botanical chlorophyll spectrum, leaf margins, and venation.</p>
+                <!-- 2. Loading State with Live Radar -->
+                <div id="loadingState" class="hidden bg-white rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-[440px] shadow-xl shadow-slate-200/50 border border-emerald-100 space-y-4">
+                    <div class="relative flex items-center justify-center">
+                        <div class="w-16 h-16 rounded-full border-4 border-emerald-100 border-t-emerald-600 animate-spin"></div>
+                        <i data-lucide="scan" class="w-6 h-6 text-emerald-600 absolute"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-900" id="loadingTitle">Running Step 1: Leaf Verification...</p>
+                        <p class="text-xs text-slate-400 max-w-xs mx-auto mt-1" id="loadingSubtitle">Inspecting image for botanical chlorophyll spectrum, leaf margins, and venation.</p>
+                    </div>
                 </div>
 
-                <!-- 3. STEP 1 FAILED: REJECTION BANNER -->
-                <div id="rejectionCard" class="hidden bg-white rounded-2xl shadow-sm border-2 border-rose-400 p-6 space-y-5">
+                <!-- 3. STEP 1 REJECTION CARD (NON-LIVING OBJECT GUARD) -->
+                <div id="rejectionCard" class="hidden bg-white rounded-3xl shadow-xl shadow-rose-100 border-2 border-rose-400 p-6 sm:p-7 space-y-5">
                     <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-                            <i data-lucide="x-octagon" class="w-7 h-7"></i>
+                        <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 shadow-inner">
+                            <i data-lucide="x-octagon" class="w-6 h-6"></i>
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800" data-i18n="rejBadge">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200" data-i18n="rejBadge">
                                     Step 1: Test Failed
                                 </span>
-                                <span class="text-xs font-bold text-rose-600" id="metricChlorophyllBadge">0.0% Foliage</span>
+                                <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200" id="metricChlorophyllBadge">0.0% Foliage</span>
                             </div>
-                            <h3 class="text-lg font-bold text-slate-900 mt-1" data-i18n="rejHeading">NO LEAF DETECTED</h3>
+                            <h3 class="text-xl font-extrabold text-slate-900 mt-1" data-i18n="rejHeading">NO LEAF DETECTED</h3>
                             <p class="text-xs text-slate-500 mt-0.5" data-i18n="rejSubtext">
                                 This image was identified as a non-living object or non-plant background.
                             </p>
@@ -179,10 +239,10 @@
                     </div>
 
                     <!-- Metric Breakdown -->
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 text-xs">
-                        <div class="font-bold text-slate-700 flex items-center justify-between border-b border-slate-200 pb-2">
+                    <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 space-y-2.5 text-xs">
+                        <div class="font-bold text-slate-800 flex items-center justify-between border-b border-slate-200 pb-2">
                             <span data-i18n="metricTitle">Step 1 Verification Metrics</span>
-                            <span class="text-rose-600 font-semibold" data-i18n="lockedBadge">Diagnosis Locked 🔒</span>
+                            <span class="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200" data-i18n="lockedBadge">Diagnosis Locked 🔒</span>
                         </div>
                         <div class="flex justify-between items-center text-slate-600">
                             <span data-i18n="metricChlorophyll">Plant Chlorophyll Content:</span>
@@ -194,73 +254,86 @@
                         </div>
                     </div>
 
-                    <div class="bg-rose-50 border border-rose-200 rounded-xl p-4 text-xs text-rose-900 space-y-1">
-                        <p class="font-bold flex items-center gap-1.5">
+                    <div class="bg-rose-50/80 border border-rose-200 rounded-2xl p-4 text-xs text-rose-950 space-y-1.5">
+                        <p class="font-bold flex items-center gap-1.5 text-rose-900">
                             <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i> <span data-i18n="whyRejectedTitle">Why was this stopped?</span>
                         </p>
                         <p class="text-rose-800 leading-relaxed" data-i18n="whyRejectedDesc">
-                            The agricultural disease scanner is strictly programmed never to classify non-living items (keyboards, phones, water bottles, faces, walls) as crop diseases.
+                            The KrishiRakshak gatekeeper is strictly programmed never to classify non-living items (keyboards, phones, water bottles, faces, walls) as crop diseases.
                         </p>
-                        <p class="text-slate-600 pt-1 font-medium" data-i18n="howToPassTip">
+                        <p class="text-slate-600 pt-1 font-semibold" data-i18n="howToPassTip">
                             🌱 <strong>How to pass:</strong> Point the camera at a real leaf or upload a picture of agricultural foliage.
                         </p>
                     </div>
                 </div>
 
-                <!-- 4. STEP 1 PASSED & STEP 2 DIAGNOSIS CARD -->
-                <div id="resultCard" class="hidden bg-white rounded-2xl shadow-sm border border-emerald-200 p-6 space-y-5">
+                <!-- 4. STEP 2 PASSED & PRESCRIPTION CARD -->
+                <div id="resultCard" class="hidden bg-white rounded-3xl shadow-xl shadow-emerald-100/50 border border-emerald-300 p-6 sm:p-7 space-y-6">
                     
-                    <!-- Step 1 Pass Alert -->
-                    <div class="bg-emerald-50 border border-emerald-200 text-emerald-900 px-3.5 py-2.5 rounded-xl flex items-center justify-between text-xs font-medium">
+                    <!-- Gatekeeper Pass Tag -->
+                    <div class="bg-emerald-50 border border-emerald-200 text-emerald-950 px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs font-semibold shadow-sm">
                         <div class="flex items-center gap-2">
-                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
-                            <span><strong data-i18n="step1PassPrefix">Step 1 Passed:</strong> <span data-i18n="realLeafConfirmed">Real leaf confirmed</span> (<span id="leafScoreText">74%</span> <span data-i18n="chlorophyllTissue">chlorophyll tissue</span>).</span>
+                            <i data-lucide="badge-check" class="w-4 h-4 text-emerald-600"></i>
+                            <span><strong data-i18n="step1PassPrefix">Step 1 Passed:</strong> <span data-i18n="realLeafConfirmed">Real leaf confirmed</span> (<span id="leafScoreText" class="font-bold text-emerald-700">74%</span> <span data-i18n="chlorophyllTissue">chlorophyll tissue</span>).</span>
                         </div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider bg-emerald-200/70 text-emerald-800 px-2 py-0.5 rounded-full" data-i18n="step2ActiveBadge">Step 2 Active</span>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-sm" data-i18n="step2ActiveBadge">Step 2 Active</span>
                     </div>
 
-                    <!-- Step 2 Disease Details -->
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                    <!-- Disease Details Banner -->
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
                         <div>
-                            <span id="healthBadge" class="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-rose-100 text-rose-800">
+                            <span id="healthBadge" class="text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
                                 Pathogen Detected
                             </span>
-                            <h3 id="resDisease" class="text-2xl font-bold text-slate-900 mt-2">Tomato — Early Blight</h3>
-                            <p class="text-xs text-slate-500 mt-0.5"><span data-i18n="diagConfLabel">Diagnostic Confidence:</span> <strong id="resConfidence" class="text-slate-800">94.8%</strong></p>
+                            <h3 id="resDisease" class="text-2xl font-black text-slate-900 mt-2 tracking-tight">Tomato — Early Blight</h3>
+                            <p class="text-xs text-slate-500 mt-1">
+                                <span data-i18n="diagConfLabel">Diagnostic Confidence:</span> 
+                                <strong id="resConfidence" class="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">94.8%</strong>
+                            </p>
                         </div>
-                        <img id="resThumb" src="#" alt="Leaf Result" class="w-20 h-20 rounded-xl object-cover border border-slate-200 shadow-sm">
+                        <div class="relative shrink-0">
+                            <img id="resThumb" src="#" alt="Leaf Result" class="w-20 h-20 rounded-2xl object-cover border-2 border-emerald-200 shadow-md">
+                        </div>
                     </div>
 
-                    <!-- Symptoms -->
+                    <!-- Observed Symptoms -->
                     <div>
-                        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5" data-i18n="symptomsTitle">Symptoms Identified</h4>
-                        <p id="resSymptoms" class="text-xs text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-200 leading-relaxed"></p>
+                        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5" data-i18n="symptomsTitle">
+                            <i data-lucide="eye" class="w-3.5 h-3.5 text-slate-400"></i> Symptoms Identified
+                        </h4>
+                        <p id="resSymptoms" class="text-xs text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 leading-relaxed font-medium"></p>
                     </div>
 
                     <!-- 3-Tier Treatment Plan -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
                         <!-- Organic -->
-                        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
-                            <div class="flex items-center gap-1.5 mb-2 text-emerald-800 font-bold text-xs uppercase">
-                                <i data-lucide="leaf" class="w-4 h-4"></i> <span data-i18n="organicTitle">Organic Remedy</span>
+                        <div class="bg-gradient-to-br from-emerald-50 to-teal-50/50 border border-emerald-200 p-4 rounded-2xl flex flex-col justify-between shadow-sm">
+                            <div>
+                                <div class="flex items-center gap-1.5 mb-2 text-emerald-800 font-bold text-xs uppercase tracking-wide">
+                                    <i data-lucide="leaf" class="w-4 h-4 text-emerald-600"></i> <span data-i18n="organicTitle">Organic Remedy</span>
+                                </div>
+                                <p id="resOrganic" class="text-xs text-emerald-950 leading-relaxed"></p>
                             </div>
-                            <p id="resOrganic" class="text-xs text-emerald-950 leading-relaxed"></p>
                         </div>
 
                         <!-- Chemical -->
-                        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
-                            <div class="flex items-center gap-1.5 mb-2 text-amber-800 font-bold text-xs uppercase">
-                                <i data-lucide="flask-conical" class="w-4 h-4"></i> <span data-i18n="chemicalTitle">Chemical Cure</span>
+                        <div class="bg-gradient-to-br from-amber-50 to-orange-50/50 border border-amber-200 p-4 rounded-2xl flex flex-col justify-between shadow-sm">
+                            <div>
+                                <div class="flex items-center gap-1.5 mb-2 text-amber-800 font-bold text-xs uppercase tracking-wide">
+                                    <i data-lucide="flask-conical" class="w-4 h-4 text-amber-600"></i> <span data-i18n="chemicalTitle">Chemical Cure</span>
+                                </div>
+                                <p id="resChemical" class="text-xs text-amber-950 leading-relaxed"></p>
                             </div>
-                            <p id="resChemical" class="text-xs text-amber-950 leading-relaxed"></p>
                         </div>
 
                         <!-- Prevention -->
-                        <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl">
-                            <div class="flex items-center gap-1.5 mb-2 text-blue-800 font-bold text-xs uppercase">
-                                <i data-lucide="shield-check" class="w-4 h-4"></i> <span data-i18n="preventionTitle">Preventive Care</span>
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50/50 border border-blue-200 p-4 rounded-2xl flex flex-col justify-between shadow-sm">
+                            <div>
+                                <div class="flex items-center gap-1.5 mb-2 text-blue-800 font-bold text-xs uppercase tracking-wide">
+                                    <i data-lucide="shield-check" class="w-4 h-4 text-blue-600"></i> <span data-i18n="preventionTitle">Preventive Care</span>
+                                </div>
+                                <p id="resPrevention" class="text-xs text-blue-950 leading-relaxed"></p>
                             </div>
-                            <p id="resPrevention" class="text-xs text-blue-950 leading-relaxed"></p>
                         </div>
                     </div>
                 </div>
@@ -269,16 +342,20 @@
         </div>
     </main>
 
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200/80 mt-12 py-5 text-center text-xs text-slate-500">
+        <p class="font-medium">KrishiRakshak AI — Smart India Hackathon Agricultural Defense Prototype</p>
+    </footer>
+
     <script>
         // ===================================================================
-        // 1. SMOOTH AUTO-SCROLL UTILITY (Saves users from manual scrolling)
+        // 1. SMOOTH AUTO-SCROLL UTILITY
         // ===================================================================
         function smoothScrollToOutput(targetId) {
             const targetEl = document.getElementById(targetId);
             if (!targetEl) return;
 
-            // Height of sticky navbar + comfort buffer
-            const NAV_HEIGHT = 76;
+            const NAV_HEIGHT = 80;
             const elementPosition = targetEl.getBoundingClientRect().top;
             const offsetPosition = elementPosition + window.pageYOffset - NAV_HEIGHT;
 
@@ -289,16 +366,21 @@
         }
 
         // ===================================================================
-        // 2. BILINGUAL DICTIONARY (ENGLISH & HINDI)
+        // 2. BILINGUAL DICTIONARY (KRISHIRAKSHAK)
         // ===================================================================
-        let currentLang = localStorage.getItem('agro_lang') || 'en';
+        let currentLang = localStorage.getItem('krishi_lang') || 'en';
         let currentScanResult = null;
         let lastFoliageScore = 0;
 
         const I18N = {
             en: {
-                appSubtitle: "Crop Health & Pest Diagnostic Web App",
+                appSubtitle: "Smart Crop Health & Pest Defense System",
                 guardActive: "Gatekeeper Active",
+                trackStep1Title: "Stage 1: Botanical Gatekeeper",
+                trackStep1Sub: "Rejects non-living objects (phones, keys, furniture)",
+                trackStep2Title: "Stage 2: Pathology Diagnostic Engine",
+                trackStep2Sub: "Identifies pathogen, severity & prescriptive cures",
+                trackZeroError: "Zero False-Positive Guard",
                 scanFoliageTitle: "Scan Plant Foliage",
                 scanFoliageDesc: "Upload or capture a leaf photo. Step 1 verifies whether a real plant leaf is present before analyzing diseases.",
                 tabUpload: "Upload File",
@@ -312,8 +394,8 @@
                 clearBtn: "Clear",
                 noHistory: "No past scans logged.",
                 awaitingTitle: "Awaiting Foliage Sample",
-                awaitingDesc: "Upload or capture a photo on the left. The app runs a Step 1 Leaf Test to confirm biological plant foliage before attempting any diagnosis.",
-                step1Title: "Step 1: Running Leaf Test...",
+                awaitingDesc: "Upload or capture a leaf photo on the left. KrishiRakshak will first test botanical tissue before generating any prescription.",
+                step1Title: "Step 1: Running Botanical Test...",
                 step1Sub: "Checking image for botanical chlorophyll spectrum, leaf margins, and venation.",
                 step2Title: "Step 2: Analyzing Pathology & Pests...",
                 step2Sub: "Leaf confirmed. Scanning for fungal lesions, blight, and spider mites.",
@@ -325,7 +407,7 @@
                 metricChlorophyll: "Plant Chlorophyll Content:",
                 metricVenation: "Foliage Venation Pattern:",
                 whyRejectedTitle: "Why was this stopped?",
-                whyRejectedDesc: "The agricultural disease scanner is strictly programmed never to classify non-living items (keyboards, phones, water bottles, faces, walls) as crop diseases.",
+                whyRejectedDesc: "The KrishiRakshak gatekeeper is strictly programmed never to classify non-living items (keyboards, phones, water bottles, faces, walls) as crop diseases.",
                 howToPassTip: "🌱 <strong>How to pass:</strong> Point the camera at a real leaf or upload a picture of agricultural foliage.",
                 step1PassPrefix: "Step 1 Passed:",
                 realLeafConfirmed: "Real leaf confirmed",
@@ -342,8 +424,13 @@
                 venationNotFound: "Not Found"
             },
             hi: {
-                appSubtitle: "फसल स्वास्थ्य एवं कीट निदान वेब ऐप",
+                appSubtitle: "स्मार्ट फसल सुरक्षा एवं कीट निदान प्रणाली",
                 guardActive: "सत्यापन प्रणाली सक्रिय",
+                trackStep1Title: "चरण 1: पत्ती सत्यापन गेटकीपर",
+                trackStep1Sub: "निर्जीव वस्तुओं (मोबाइल, कीबोर्ड, फर्नीचर) को रोकता है",
+                trackStep2Title: "चरण 2: रोग निदान एवं उपचार इंजन",
+                trackStep2Sub: "रोग के लक्षण, जैविक व रासायनिक उपचार बताता है",
+                trackZeroError: "सटीक पत्ती पहचान सुरक्षा",
                 scanFoliageTitle: "पौधे की पत्ती स्कैन करें",
                 scanFoliageDesc: "पत्ती का फोटो अपलोड करें या कैमरे से लें। चरण 1 जांचेगा कि क्या यह सचमुच एक पौधे की पत्ती है, उसके बाद ही रोग निदान होगा।",
                 tabUpload: "फ़ाइल अपलोड करें",
@@ -357,7 +444,7 @@
                 clearBtn: "साफ़ करें",
                 noHistory: "कोई पिछला स्कैन दर्ज नहीं है।",
                 awaitingTitle: "पत्ती के नमूने की प्रतीक्षा है",
-                awaitingDesc: "बाएं पैनल से फोटो चुनें। किसी भी रोग का पता लगाने से पहले ऐप जांचेगा कि फोटो किसी वास्तविक पौधे की पत्ती की है या नहीं।",
+                awaitingDesc: "बाएं पैनल से फोटो चुनें। कृषिरक्षक किसी भी रोग का पता लगाने से पहले जांचेगा कि फोटो असली पत्ती की है या नहीं।",
                 step1Title: "चरण 1: पत्ती सत्यापन जांच जारी है...",
                 step1Sub: "पौधे के क्लोरोफिल, पत्तियों की नसों और बनावट की जांच हो रही है।",
                 step2Title: "चरण 2: रोग एवं कीट का विश्लेषण जारी है...",
@@ -370,7 +457,7 @@
                 metricChlorophyll: "पौधे के क्लोरोफिल की मात्रा:",
                 metricVenation: "पत्ती की नसों की बनावट:",
                 whyRejectedTitle: "यह क्यों रोक दिया गया?",
-                whyRejectedDesc: "यह कृषि स्कैनर निर्जीव वस्तुओं (जैसे कीबोर्ड, मोबाइल, बोतल, चेहरे, फर्श) को कभी भी फसल का रोग नहीं बताता। केवल असली पत्तियों का ही निदान किया जाता है।",
+                whyRejectedDesc: "कृषिरक्षक गेटकीपर निर्जीव वस्तुओं (जैसे कीबोर्ड, मोबाइल, बोतल, चेहरे, फर्श) को कभी भी फसल का रोग नहीं बताता। केवल असली पत्तियों का ही निदान किया जाता है।",
                 howToPassTip: "🌱 <strong>सही जांच के लिए:</strong> कैमरे को किसी असली पौधे की पत्ती पर रखें या खेत की पत्ती का स्पष्ट फोटो अपलोड करें।",
                 step1PassPrefix: "चरण 1 सफल:",
                 realLeafConfirmed: "असली पत्ती की पुष्टि हुई",
@@ -506,17 +593,17 @@
         // ===================================================================
         function setLanguage(lang) {
             currentLang = lang;
-            localStorage.setItem('agro_lang', lang);
+            localStorage.setItem('krishi_lang', lang);
 
             const btnEn = document.getElementById('langBtnEn');
             const btnHi = document.getElementById('langBtnHi');
 
             if (lang === 'hi') {
-                btnHi.className = "px-2.5 py-1 rounded-md transition bg-white text-emerald-900 shadow";
-                btnEn.className = "px-2.5 py-1 rounded-md transition text-emerald-100 hover:text-white";
+                btnHi.className = "px-3 py-1 rounded-lg text-xs font-semibold transition bg-emerald-500 text-white shadow-md";
+                btnEn.className = "px-3 py-1 rounded-lg text-xs font-semibold transition text-emerald-200 hover:text-white";
             } else {
-                btnEn.className = "px-2.5 py-1 rounded-md transition bg-white text-emerald-900 shadow";
-                btnHi.className = "px-2.5 py-1 rounded-md transition text-emerald-100 hover:text-white";
+                btnEn.className = "px-3 py-1 rounded-lg text-xs font-semibold transition bg-emerald-500 text-white shadow-md";
+                btnHi.className = "px-3 py-1 rounded-lg text-xs font-semibold transition text-emerald-200 hover:text-white";
             }
 
             document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -549,14 +636,14 @@
             if (tab === 'upload') {
                 uploadView.classList.remove('hidden');
                 cameraView.classList.add('hidden');
-                tabUploadBtn.className = "py-2 px-4 border-b-2 border-emerald-600 text-emerald-700 flex items-center gap-2";
-                tabCameraBtn.className = "py-2 px-4 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2";
+                tabUploadBtn.className = "py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-white text-emerald-900 shadow-sm";
+                tabCameraBtn.className = "py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800";
                 stopCamera();
             } else {
                 uploadView.classList.add('hidden');
                 cameraView.classList.remove('hidden');
-                tabCameraBtn.className = "py-2 px-4 border-b-2 border-emerald-600 text-emerald-700 flex items-center gap-2";
-                tabUploadBtn.className = "py-2 px-4 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2";
+                tabCameraBtn.className = "py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-white text-emerald-900 shadow-sm";
+                tabUploadBtn.className = "py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800";
                 startCamera();
             }
         }
@@ -612,7 +699,7 @@
         }
 
         // ===================================================================
-        // 5. STEP 1: BOTANICAL LEAF VERIFICATION ENGINE
+        // 5. STEP 1: STRICT BOTANICAL GATEKEEPER ENGINE
         // ===================================================================
         function executeStep1LeafVerification(imageSource) {
             const canvas = document.createElement('canvas');
@@ -679,7 +766,6 @@
             document.getElementById('loadingTitle').textContent = I18N[currentLang].step1Title;
             document.getElementById('loadingSubtitle').textContent = I18N[currentLang].step1Sub;
 
-            // Automatically glide down to the loading indicator immediately
             smoothScrollToOutput('loadingState');
 
             const img = new Image();
@@ -689,10 +775,8 @@
 
                 setTimeout(() => {
                     if (!leafCheck.isLeaf) {
-                        // Step 1 Failed -> Reject Non-Living Object
                         showStep1Failure(leafCheck);
                     } else {
-                        // Step 1 Passed -> Proceed to Step 2
                         document.getElementById('loadingTitle').textContent = I18N[currentLang].step2Title;
                         document.getElementById('loadingSubtitle').textContent = I18N[currentLang].step2Sub;
 
@@ -727,8 +811,6 @@
                 : I18N[currentLang].venationNotFound;
 
             lucide.createIcons();
-            
-            // Glide smoothly to the failure card
             smoothScrollToOutput('rejectionCard');
         }
 
@@ -743,10 +825,10 @@
 
             const badge = document.getElementById('healthBadge');
             if (item.isHealthy) {
-                badge.className = "text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-100 text-emerald-800";
+                badge.className = "text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200";
                 badge.textContent = I18N[currentLang].healthyBadge;
             } else {
-                badge.className = "text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-rose-100 text-rose-800";
+                badge.className = "text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-200";
                 badge.textContent = I18N[currentLang].pathogenBadge;
             }
 
@@ -760,14 +842,13 @@
 
             lucide.createIcons();
 
-            // Automatically glide down to the final diagnosis card
             if (shouldScroll) {
                 smoothScrollToOutput('resultCard');
             }
         }
 
         function saveToHistory(item, conf) {
-            const history = JSON.parse(localStorage.getItem('leaf_scans') || '[]');
+            const history = JSON.parse(localStorage.getItem('krishi_scans') || '[]');
             const entry = {
                 titleEn: `${item.crop.en} (${item.condition.en.split(' ')[0]})`,
                 titleHi: `${item.crop.hi} (${item.condition.hi.split(' ')[0]})`,
@@ -776,24 +857,24 @@
                 isHealthy: item.isHealthy
             };
             history.unshift(entry);
-            localStorage.setItem('leaf_scans', JSON.stringify(history.slice(0, 10)));
+            localStorage.setItem('krishi_scans', JSON.stringify(history.slice(0, 10)));
             loadHistory();
         }
 
         function loadHistory() {
             const list = document.getElementById('historyList');
-            const history = JSON.parse(localStorage.getItem('leaf_scans') || '[]');
+            const history = JSON.parse(localStorage.getItem('krishi_scans') || '[]');
             if (history.length === 0) {
                 list.innerHTML = `<p class="text-[11px] text-slate-400 py-2">${I18N[currentLang].noHistory}</p>`;
                 return;
             }
             list.innerHTML = history.map(item => `
-                <div class="py-2 flex items-center justify-between">
+                <div class="py-2.5 flex items-center justify-between">
                     <div>
-                        <p class="font-semibold text-slate-800">${currentLang === 'hi' ? item.titleHi : item.titleEn}</p>
+                        <p class="font-bold text-slate-800">${currentLang === 'hi' ? item.titleHi : item.titleEn}</p>
                         <span class="text-[10px] text-slate-400">${item.date}</span>
                     </div>
-                    <span class="px-2 py-0.5 rounded font-bold text-[10px] ${item.isHealthy ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                    <span class="px-2.5 py-0.5 rounded-full font-bold text-[10px] ${item.isHealthy ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
                         ${item.conf}%
                     </span>
                 </div>
@@ -801,7 +882,7 @@
         }
 
         function clearHistory() {
-            localStorage.removeItem('leaf_scans');
+            localStorage.removeItem('krishi_scans');
             loadHistory();
         }
 
