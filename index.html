@@ -164,7 +164,9 @@
                     <div id="previewContainer" class="hidden mt-5 pt-5 border-t border-slate-100 space-y-4">
                         <div class="flex items-center justify-between">
                             <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="loadedSample">Loaded Sample</p>
-                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Ready for Scan</span>
+                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Ready for Scan
+                            </span>
                         </div>
                         
                         <div class="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900/5 max-h-48 flex items-center justify-center p-1">
@@ -172,7 +174,7 @@
                         </div>
                         
                         <!-- Primary Diagnosis Button -->
-                        <button onclick="runPipeline()" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl text-xs sm:text-sm transition-all duration-200 shadow-xl shadow-emerald-600/25 flex items-center justify-center gap-2 active:scale-95 group">
+                        <button onclick="runPipeline()" id="runPipelineActionBtn" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl text-xs sm:text-sm transition-all duration-200 shadow-xl shadow-emerald-600/25 flex items-center justify-center gap-2 active:scale-95 group">
                             <i data-lucide="play-circle" class="w-5 h-5 transition-transform group-hover:rotate-12"></i>
                             <span data-i18n="runPipelineBtn">Run 2-Stage Verification & Diagnosis</span>
                         </button>
@@ -622,7 +624,7 @@
         }
 
         // ===================================================================
-        // 4. CAMERA & FILE HANDLING
+        // 4. CAMERA & FILE HANDLING (WITH AUTO-SCROLL TO ACTION BUTTON)
         // ===================================================================
         let currentImageBase64 = null;
         let videoStream = null;
@@ -689,13 +691,21 @@
         function displayPreview(dataUrl) {
             currentImageBase64 = dataUrl;
             document.getElementById('previewImg').src = dataUrl;
-            document.getElementById('previewContainer').classList.remove('hidden');
+            
+            const previewBox = document.getElementById('previewContainer');
+            previewBox.classList.remove('hidden');
+            previewBox.classList.add('animate-card-pop');
             
             // Reset right panel
             document.getElementById('rejectionCard').classList.add('hidden');
             document.getElementById('resultCard').classList.add('hidden');
             document.getElementById('loadingState').classList.add('hidden');
             document.getElementById('emptyState').classList.remove('hidden');
+
+            // AUTO-SCROLL TO THE "RUN 2-STAGE VERIFICATION & DIAGNOSIS" BUTTON
+            setTimeout(() => {
+                smoothScrollToOutput('previewContainer');
+            }, 120);
         }
 
         // ===================================================================
@@ -766,6 +776,7 @@
             document.getElementById('loadingTitle').textContent = I18N[currentLang].step1Title;
             document.getElementById('loadingSubtitle').textContent = I18N[currentLang].step1Sub;
 
+            // Glide to the loading state
             smoothScrollToOutput('loadingState');
 
             const img = new Image();
